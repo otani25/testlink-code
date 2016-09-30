@@ -170,7 +170,7 @@ function saveImportedResultData(&$db,$resultData,$context,$options)
     return;
   }
   $debugMsg = ' FUNCTION: ' . __FUNCTION__;
-  $tables = tlObjectWithDB::getDBTables(array('executions','execution_bugs'));
+  $tables = tlObjectWithDB::getDBTables(array('executions','execution_bugs','execution_tcsteps'));
   
   $tcaseCfg=config_get('testcase_cfg');
 
@@ -447,30 +447,30 @@ function saveImportedResultData(&$db,$resultData,$context,$options)
 
           $db->exec_query($sql); 
           $execution_id = $db->insert_id($tables['executions']);
-
-          // 20150127
-          /*
+          // 20160914 otani
           if(isset($tcase_exec['steps']) && !is_null($tcase_exec['steps']))
           {
             $stepSet = $tcase_mgr->getStepsSimple($tcversion_id,0,
                                                   array('fields2get' => 'TCSTEPS.step_number,TCSTEPS.id',
                                                         'accessKey' => 'step_number'));
             $sc = count($tcase_exec['steps']);
+            $isset = false;
+            $sql = " INSERT INTO {$tables['execution_tcsteps']} (execution_id,tcstep_id,notes,status) VALUES "; 
             for($sx=0; $sx < $sc; $sx++)
             {
-              $snum = $$tcase_exec['steps'][$sx];
+              $snum = $tcase_exec['steps'][$sx];
               // assumption: all data is valid
-              if(isset($stepSet[$snum]))
+              if(isset($snum["step_number"]) && isset($stepSet[$snum["step_number"]]) && $execution_id > 0)
               {
-                
+                $tcstep = $stepSet[$snum["step_number"]];
+                $sql .= ($isset ? "," : "") . " ({$execution_id}, {$tcstep['id']}, '{$snum['notes']}', '{$snum['result']}') ";
+                $isset = true;
               }  
-            }  
+            }
+            if($isset){
+              $db->exec_query($sql);
+            }
           }  
-          new dBug($tcase_exec);
-          die();
-          */
-
-
 
           if($lexid > 0 && $options->copyIssues)
           {
