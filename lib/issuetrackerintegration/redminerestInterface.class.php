@@ -312,7 +312,7 @@ class redminerestInterface extends issueTrackerInterface
    * - custom_fields    - See Custom fields
    * - watcher_user_ids - Array of user ids to add as watchers (since 2.3.0)
    */
-  public function addIssue($summary,$description)
+  public function addIssue($summary,$description,$opt=null)
   {
   	// Check mandatory info
   	if( !property_exists($this->cfg,'projectidentifier') )
@@ -389,6 +389,22 @@ class redminerestInterface extends issueTrackerInterface
         }  
       }  
 
+      // x!x! 20161004
+      // custom add attributes
+      if( !is_null($opt) )
+      {
+        $attrName = array('category_id','priority_id','parent_issue_id',
+                          'fixed_version_id','assigned_to_id');
+        foreach($attrName as $name)
+        {
+          if( property_exists($opt,$name) )
+          {
+            $issueXmlObj->addChild($name,$opt->$name);
+          }
+        }
+      }
+
+
       // 20150815 
       // In order to manage custom fields in simple way, 
       // it seems that is better create here plain XML String
@@ -401,7 +417,7 @@ class redminerestInterface extends issueTrackerInterface
       }
 
       // $op = $this->APIClient->addIssueFromSimpleXML($issueXmlObj);
-      // file_put_contents('/var/testlink/' . __CLASS__ . '.log', $xml);
+       file_put_contents('/var/testlink/' . __CLASS__ . '14.log', $xml);
       $op = $this->APIClient->addIssueFromXMLString($xml);
 
       if(is_null($op))
@@ -503,6 +519,36 @@ class redminerestInterface extends issueTrackerInterface
   {
     return (property_exists($this->cfg, 'projectidentifier'));
   }
+
+  function getCategorys()
+  {
+    $items = null;
+    if(!is_null($this->cfg->customAttributes) && !is_null($this->cfg->customAttributes->category)){
+      $items = $this->objectAttrToIDName($this->cfg->customAttributes->category);
+    }
+    return $items;
+  }
+
+  function getCategorysForHTMLSelect()
+  {
+    return array('items'=> $this->getCategorys(),
+                 'isMultiSelect' => false);
+  }
+
+private function objectAttrToIDName($attrSet)
+  {
+    $ret = null;
+    if(!is_null($attrSet))
+    {
+      $ic = count($attrSet);
+      for($idx=0; $idx < $ic; $idx++)
+      {
+        $ret[(string)$attrSet[$idx]->attributes()->id] = (string)$attrSet[$idx]->attributes()->name; 
+      }  
+    }  
+    return $ret;  
+  }
+
 
 
 }

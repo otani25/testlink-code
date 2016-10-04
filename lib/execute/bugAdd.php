@@ -118,6 +118,7 @@ function initEnv(&$dbHandler)
                    "issuePriority" => array("POST",tlInputParameter::INT_N),
                    "artifactComponent" => array("POST",tlInputParameter::ARRAY_INT),
                    "artifactVersion" => array("POST",tlInputParameter::ARRAY_INT),
+                   "category_id" => array("POST",tlInputParameter::INT_N),
 		               "user_action" => array("REQUEST",tlInputParameter::STRING_N,
                                           $user_action['minLengh'],$user_action['maxLengh']));
 		             
@@ -166,7 +167,7 @@ function initEnv(&$dbHandler)
   $gui->issuePriority = $args->issuePriority;
   $gui->artifactVersion = $args->artifactVersion;
   $gui->artifactComponent = $args->artifactComponent;
-  
+  $gui->category_id = $args->category_id;
 
   // -----------------------------------------------------------------------
   // Special processing

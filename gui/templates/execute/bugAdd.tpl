@@ -95,6 +95,12 @@ TestLink Open Source Project - http://testlink.sourceforge.net/
          }
          </select>
       {/if}
+      {if $gui->issueTrackerMetaData.category.items != ''}
+       <label for="category_id">category</label>
+       {html_options name="category_id" options=$gui->issueTrackerMetaData.category.items 
+selected = $gui->category
+}
+      {/if}
      </p>
      {/if}  {* $gui->issueTrackerMetaData *}
     {/if}
