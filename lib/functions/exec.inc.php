@@ -598,7 +598,9 @@ function addIssue($dbHandler,$argsObj,$itsObj)
   $opt = new stdClass();
   $opt->reporter = $argsObj->user->login;
   $p2check = array('issueType','issuePriority','issuePriority',
-                   'artifactComponent','artifactVersion');
+                   'artifactComponent','artifactVersion',
+                   'category_id','assigned_to_id','fixed_version_id',
+                   'priority_id','parent_issue_id');
   foreach($p2check as $prop)
   {
     if(property_exists($argsObj, $prop) && !is_null($argsObj->$prop))
@@ -778,11 +780,22 @@ function getIssueTrackerMetaData($itsObj)
     $ret['components'] = null;
     $ret['priorities'] = null;
     $ret['versions'] = null;
+    $ret['category'] = null;
+    $ret['assigned_to'] = null;
+    $ret['fixed_version'] = null;
+    $ret['priority'] = null;
+    $ret['parent_id'] = null;
 
     $target = array('issueTypes' => 'getIssueTypesForHTMLSelect',
                     'priorities' => 'getPrioritiesForHTMLSelect',
                     'versions' => 'getVersionsForHTMLSelect',
-                    'components' => 'getComponentsForHTMLSelect');
+                    'components' => 'getComponentsForHTMLSelect',
+                    'category'  => 'getCategoryForHTMLSelect',
+                    'assigned_to' => 'getAssignIdForHTMLSelect',
+                    'fixed_version' => 'getFixedVersionForHTMLSelect',
+                    'priority' => 'getPriorityForHTMLSelect',
+                    'parent_id' => 'getParentIdSetFlag'
+                    );
 
     foreach($target as $key => $worker)
     {
