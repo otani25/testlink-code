@@ -399,7 +399,8 @@ class redminerestInterface extends issueTrackerInterface
         {
           if( property_exists($opt,$name) )
           {
-            $issueXmlObj->addChild($name,$opt->$name);
+//            $issueXmlObj->addChild($name,$opt->$name);
+            $issueXmlObj->$name = $opt->$name;
           }
         }
       }
@@ -520,7 +521,7 @@ class redminerestInterface extends issueTrackerInterface
     return (property_exists($this->cfg, 'projectidentifier'));
   }
 
-  function getCategorys()
+  function getCategory()
   {
     $items = null;
     if(!is_null($this->cfg->customAttributes) && !is_null($this->cfg->customAttributes->category)){
@@ -528,14 +529,73 @@ class redminerestInterface extends issueTrackerInterface
     }
     return $items;
   }
-
-  function getCategorysForHTMLSelect()
+ 
+  function getAssignId()
   {
-    return array('items'=> $this->getCategorys(),
+    $items = null;
+    if(!is_null($this->cfg->customAttributes) && !is_null($this->cfg->customAttributes->assigned_to)){
+      $items = $this->objectAttrToIDName($this->cfg->customAttributes->assigned_to);
+    }
+    return $items;
+  }
+
+  function getFixedVersion()
+  {
+    $items = null;
+    if(!is_null($this->cfg->customAttributes) && !is_null($this->cfg->customAttributes->fixed_version)){
+      $items = $this->objectAttrToIDName($this->cfg->customAttributes->fixed_version);
+    }
+    return $items;
+  }
+
+  function getPriority()
+  {
+    $items = null;
+    if(!is_null($this->cfg->customAttributes) && !is_null($this->cfg->customAttributes->priority)){
+      $items = $this->objectAttrToIDName($this->cfg->customAttributes->priority);
+    }
+    return $items;
+  }
+
+  function getParentIdFlag()
+  {
+    $items = null;
+    if(!is_null($this->cfg->customAttributes) && !is_null($this->cfg->customAttributes->parent_set_flag)){
+      $items = (string)$this->cfg->customAttributes->parent_set_flag;
+    }
+    return $items;
+  }
+
+  function getCategoryForHTMLSelect()
+  {
+    return array('items'=> $this->getCategory(),
                  'isMultiSelect' => false);
   }
 
-private function objectAttrToIDName($attrSet)
+  function getAssignIdForHTMLSelect()
+  {
+    return array('items' => $this->getAssignId(),
+                 'isMultiSelect' => false);
+  }
+
+  function getFixedVersionForHTMLSelect()
+  {
+    return array('items' => $this->getFixedVersion(),
+                 'isMultiSelect' => false);
+  }
+
+  function getPriorityForHTMLSelect()
+  {
+    return array('items' => $this->getPriority(),
+                 'isMultiSelect' => false);
+  }
+
+  function getParentIdSetFlag()
+  {
+    return array('isVisible' => $this->getParentIdFlag());
+  }
+
+  private function objectAttrToIDName($attrSet)
   {
     $ret = null;
     if(!is_null($attrSet))

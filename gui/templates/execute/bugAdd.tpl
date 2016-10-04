@@ -101,7 +101,34 @@ TestLink Open Source Project - http://testlink.sourceforge.net/
 selected = $gui->category
 }
       {/if}
+      {if $gui->issueTrackerMetaData.assigned_to.items != ''}
+       <label for="assigned_to_id">assign</label>
+       {html_options name="assigned_to_id" options=$gui->issueTrackerMetaData.assigned_to.items
+selected = $gui->assigne_to_id
+}
+      {/if}
+      {if $gui->issueTrackerMetaData.fixed_version.items != ''}
+       <label for="fixed_version_id">version</label>
+       {html_options name="fixed_version_id" options=$gui->issueTrackerMetaData.fixed_version.items
+selected = $gui->fixed_version_id
+}
+      {/if}
+
+      {if $gui->issueTrackerMetaData.priority.items != ''}
+       <label for="priority_id">priority</label>
+       {html_options name="priority_id" options=$gui->issueTrackerMetaData.priority.items
+selected = $gui->prioriry_id
+}
+      {/if}
      </p>
+     {if $gui->issueTrackerMetaData.parent_id.isVisible === 'true'}
+             <p class="label">{$gui->issueTrackerCfg->VerboseType|escape} 親チケットID
+        <input type="number"  name="parent_issue_id" 
+               size="150" maxlength="{$gui->issueTrackerCfg->bugIDMaxLength}"
+                />
+      </p>
+     {/if}
+
      {/if}  {* $gui->issueTrackerMetaData *}
     {/if}
 
