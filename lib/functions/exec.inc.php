@@ -255,6 +255,9 @@ function write_execution(&$db,&$exec_signature,&$exec_data,&$issueTracker)
         $execContext->basehref = $exec_signature->basehref;
         $execContext->tplan_apikey = $exec_signature->tplan_apikey;
 
+        $execContext->addLinkToTL = $exec_signature->addLinkToTL;
+        $execContext->direct_link = $exec_signature->direct_link;
+
         if(property_exists($exec_signature,'bug_summary'))
         {
           $execContext->bug_summary = $exec_signature->bug_summary;
@@ -762,6 +765,10 @@ function generateIssueText($dbHandler,$argsObj,$itsObj)
     $ret->summary = $argsObj->bug_summary;
   }
 
+  if( $argsObj->addLinkToTL )
+  {
+    $ret->description .= "\n\n" . lang_get('dl2tl') . $argsObj->direct_link;
+  }  
 
   return $ret;
 

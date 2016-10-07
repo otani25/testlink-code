@@ -31,6 +31,9 @@ if( ($args->user_action == 'create' || $args->user_action == 'doCreate') &&
     break;
 
     case 'doCreate':
+     $args->direct_link = getDirectLinkToExec($db,$args->exec_id); 
+     $dummy = generateIssueText($db,$args,$its); 
+
      $gui->bug_summary = $args->bug_summary;
      $ret = addIssue($db,$args,$its);
      $gui->issueTrackerCfg->tlCanCreateIssue = $ret['status_ok'];
@@ -124,7 +127,8 @@ function initEnv(&$dbHandler)
                    "priority_id" => array("POST",tlInputParameter::INT_N),
                    "parent_issue_id" => array("POST",tlInputParameter::STRING_N),
 		               "user_action" => array("REQUEST",tlInputParameter::STRING_N,
-                                          $user_action['minLengh'],$user_action['maxLengh']));
+                                          $user_action['minLengh'],$user_action['maxLengh']),
+                   "addLinkToTL" => array("POST",tlInputParameter::CB_BOOL));
 		             
 	
 	$args = new stdClass();
@@ -142,6 +146,7 @@ function initEnv(&$dbHandler)
   $args->user = $_SESSION['currentUser'];
 
   $gui = new stdClass();
+  $gui->addLinkToTL = $args->addLinkToTL;
   switch($args->user_action)
   {
     case 'create':
@@ -263,7 +268,30 @@ function getIssueTracker(&$dbHandler,$argsObj,&$guiObj)
   return array($its,$issueTrackerCfg); 
 }
 
+/**
+ *
+ */
+function getDirectLinkToExec(&$dbHandler,$execID)
+{
+  $tbk = array('executions','testplan_tcversions');
+  $tbl = tlObjectWithDB::getDBTables($tbk);
+  $sql = " SELECT EX.id,EX.build_id,EX.testplan_id," .
+         " EX.tcversion_id,TPTCV.id AS feature_id " .
+         " FROM {$tbl['executions']} EX " .
+         " JOIN {$tbl['testplan_tcversions']} TPTCV " .
+         " ON TPTCV.testplan_id=EX.testplan_id " .
+         " AND TPTCV.tcversion_id=EX.tcversion_id " .
+         " AND TPTCV.platform_id=EX.platform_id " .
+         " WHERE EX.id=" . intval($execID);
 
+  $rs = $dbHandler->get_recordset($sql);
+  $rs = $rs[0];
+  $dlk = trim($_SESSION['basehref'],'/') . 
+         "/ltx.php?item=exec&feature_id=" . $rs['feature_id'] .
+         "&build_id=" . $rs['build_id'];
+  
+  return $dlk;
+}
 
 
 /**

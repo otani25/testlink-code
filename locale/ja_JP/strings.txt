@@ -2428,6 +2428,10 @@ $TLS_link_time_charts		= "タイムチャート";
 $TLS_time_charts_metrics 	= "タイムチャートメトリクス";
 $TLS_time_charts_title 		= "タイムチャート";
 
+// ----- custom -----
+$TLS_bug_category               = "カテゴリ";
+$TLS_parent_id                  = "親チケットID";
+$TLS_add_link_to_tlexec         = "コメントにテストケースのリンクを追加する";
 
 // ----- END ------------------------------------------------------------------
 ?>

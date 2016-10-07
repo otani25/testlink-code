@@ -3945,4 +3945,14 @@ $TLS_remove_kw_msgbox_msg = "Really remove keyword %i?";
 $TLS_img_title_remove_keyword = "Click to remove this keyword.";
 $TLS_display_ea_string ="Display attachement placeholder";
 
+
+// custom add
+$TLS_bug_category = "category";
+$TLS_assigned_to = "assign";
+$TLS_fixed_version = "version";
+$TLS_priority = "priority";
+$TLS_parent_id = "parent ticketID";
+$TLS_add_link_to_tlexec = "Add Link in Issue Tracker to Test Case Execution Feature";
+$TLS_dl2tl = "Link to TestLink Execution: ";
+
 // ----- END ------------------------------------------------------------------
