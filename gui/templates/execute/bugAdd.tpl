@@ -12,7 +12,9 @@ TestLink Open Source Project - http://testlink.sourceforge.net/
 {lang_get var='labels' 
           s='title_bug_add,link_bts_create_bug,bug_id,notes,hint_bug_notes,
              btn_close,btn_add_bug,btn_save,bug_summary,
-             issueType,issuePriority,artifactVersion,artifactComponent'} 
+             issueType,issuePriority,artifactVersion,artifactComponent,
+             bug_category,assigned_to,fixed_version,priority,parent_id,
+             add_link_to_tlexec,due_date'} 
 
 
 <body onunload="dialog_onUnload(bug_dialog)" onload="dialog_onLoad(bug_dialog)">
@@ -96,38 +98,51 @@ TestLink Open Source Project - http://testlink.sourceforge.net/
          </select>
       {/if}
       {if $gui->issueTrackerMetaData.category.items != ''}
-       <label for="category_id">category</label>
+       <label for="category_id">{$labels.bug_category}</label>
        {html_options name="category_id" options=$gui->issueTrackerMetaData.category.items 
 selected = $gui->category
 }
       {/if}
       {if $gui->issueTrackerMetaData.assigned_to.items != ''}
-       <label for="assigned_to_id">assign</label>
+       <label for="assigned_to_id">{$labels.assigned_to}</label>
        {html_options name="assigned_to_id" options=$gui->issueTrackerMetaData.assigned_to.items
 selected = $gui->assigne_to_id
 }
       {/if}
       {if $gui->issueTrackerMetaData.fixed_version.items != ''}
-       <label for="fixed_version_id">version</label>
+       <label for="fixed_version_id">{$labels.fixed_version}</label>
        {html_options name="fixed_version_id" options=$gui->issueTrackerMetaData.fixed_version.items
 selected = $gui->fixed_version_id
 }
       {/if}
 
       {if $gui->issueTrackerMetaData.priority.items != ''}
-       <label for="priority_id">priority</label>
+       <label for="priority_id">{$labels.priority}</label>
        {html_options name="priority_id" options=$gui->issueTrackerMetaData.priority.items
 selected = $gui->prioriry_id
 }
       {/if}
      </p>
+
+     <p>
      {if $gui->issueTrackerMetaData.parent_id.isVisible === 'true'}
-             <p class="label">{$gui->issueTrackerCfg->VerboseType|escape} 親チケットID
+             <label for="parent_id">{$gui->issueTrackerCfg->VerboseType|escape} {$labels.parent_id}
         <input type="number"  name="parent_issue_id" 
                size="150" maxlength="{$gui->issueTrackerCfg->bugIDMaxLength}"
                 />
-      </p>
      {/if}
+
+     {if $gui->issueTrackerMetaData.due_date.isVisible === 'true'}
+     <label for="due_date">{$labels.due_date}</label>
+
+     <select name="due_date">
+       <option value="" selected="selected">--</option>
+       {section name=time start=$smarty.now loop=$smarty.now+7776000 step=86400}
+       <option value="{$smarty.section.time.index|date_format:"%Y-%m-%d"}">{$smarty.section.time.index|date_format:"%m/%d"}</option>
+       {/section}
+     </select>
+     {/if}
+     </p>
 
      {/if}  {* $gui->issueTrackerMetaData *}
     {/if}
@@ -137,6 +152,12 @@ selected = $gui->prioriry_id
         <textarea id="bug_notes" name="bug_notes" 
                   rows="{#BUGNOTES_ROWS#}" cols="{#BUGNOTES_COLS#}" >{$gui->bug_notes}</textarea>
     {/if}    
+
+    {if $gui->user_action == 'create' || $gui->user_action == 'doCreate' || $gui->user_action == 'link'}
+      <br><br>
+      <input type="checkbox" name="addLinkToTL"  id="addLinkToTL">
+      <span class="label">{$labels.add_link_to_tlexec}</span>
+    {/if}
 
     <div class="groupBtn">
      {if $gui->user_action == 'link'}

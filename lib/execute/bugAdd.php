@@ -126,6 +126,7 @@ function initEnv(&$dbHandler)
                    "fixed_version_id" => array("POST",tlInputParameter::INT_N),
                    "priority_id" => array("POST",tlInputParameter::INT_N),
                    "parent_issue_id" => array("POST",tlInputParameter::STRING_N),
+                   "due_date" => array("POST",tlInputParameter::STRING_N),
 		               "user_action" => array("REQUEST",tlInputParameter::STRING_N,
                                           $user_action['minLengh'],$user_action['maxLengh']),
                    "addLinkToTL" => array("POST",tlInputParameter::CB_BOOL));
@@ -182,6 +183,7 @@ function initEnv(&$dbHandler)
   $gui->fixed_version_id = $args->fixed_version_id;
   $gui->priority_id = $args->priority_id;
   $gui->parent_issue_id = $args->parent_issue_id;
+  $gui->due_date = $args->due_date;
 
   // -----------------------------------------------------------------------
   // Special processing

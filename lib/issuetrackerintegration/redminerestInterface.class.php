@@ -394,7 +394,7 @@ class redminerestInterface extends issueTrackerInterface
       if( !is_null($opt) )
       {
         $attrName = array('category_id','priority_id','parent_issue_id',
-                          'fixed_version_id','assigned_to_id');
+                          'fixed_version_id','assigned_to_id','due_date');
         foreach($attrName as $name)
         {
           if( property_exists($opt,$name) )
@@ -566,6 +566,15 @@ class redminerestInterface extends issueTrackerInterface
     return $items;
   }
 
+  function getDueDateFlag()
+  {
+    $items = null;
+    if(!is_null($this->cfg->customAttributes) && !is_null($this->cfg->customAttributes->due_date_set_flag)){
+      $items = (string)$this->cfg->customAttributes->due_date_set_flag;
+    }
+    return $items;
+  }
+
   function getCategoryForHTMLSelect()
   {
     return array('items'=> $this->getCategory(),
@@ -593,6 +602,11 @@ class redminerestInterface extends issueTrackerInterface
   function getParentIdSetFlag()
   {
     return array('isVisible' => $this->getParentIdFlag());
+  }
+
+  function getDueDateSetFlag()
+  {
+    return array('isVisible' => $this->getDueDateFlag());
   }
 
   private function objectAttrToIDName($attrSet)
