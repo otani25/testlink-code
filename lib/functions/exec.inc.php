@@ -255,6 +255,9 @@ function write_execution(&$db,&$exec_signature,&$exec_data,&$issueTracker)
         $execContext->basehref = $exec_signature->basehref;
         $execContext->tplan_apikey = $exec_signature->tplan_apikey;
 
+        $execContext->addLinkToTL = $exec_signature->addLinkToTL;
+        $execContext->direct_link = $exec_signature->direct_link;
+
         if(property_exists($exec_signature,'bug_summary'))
         {
           $execContext->bug_summary = $exec_signature->bug_summary;
@@ -600,7 +603,7 @@ function addIssue($dbHandler,$argsObj,$itsObj)
   $p2check = array('issueType','issuePriority','issuePriority',
                    'artifactComponent','artifactVersion',
                    'category_id','assigned_to_id','fixed_version_id',
-                   'priority_id','parent_issue_id');
+                   'priority_id','parent_issue_id','due_date');
   foreach($p2check as $prop)
   {
     if(property_exists($argsObj, $prop) && !is_null($argsObj->$prop))
@@ -762,6 +765,10 @@ function generateIssueText($dbHandler,$argsObj,$itsObj)
     $ret->summary = $argsObj->bug_summary;
   }
 
+  if( $argsObj->addLinkToTL )
+  {
+    $ret->description .= "\n\n" . lang_get('dl2tl') . $argsObj->direct_link;
+  }  
 
   return $ret;
 
@@ -785,6 +792,7 @@ function getIssueTrackerMetaData($itsObj)
     $ret['fixed_version'] = null;
     $ret['priority'] = null;
     $ret['parent_id'] = null;
+    $ret['due_date'] = null;
 
     $target = array('issueTypes' => 'getIssueTypesForHTMLSelect',
                     'priorities' => 'getPrioritiesForHTMLSelect',
@@ -794,7 +802,8 @@ function getIssueTrackerMetaData($itsObj)
                     'assigned_to' => 'getAssignIdForHTMLSelect',
                     'fixed_version' => 'getFixedVersionForHTMLSelect',
                     'priority' => 'getPriorityForHTMLSelect',
-                    'parent_id' => 'getParentIdSetFlag'
+                    'parent_id' => 'getParentIdSetFlag',
+                    'due_date' => 'getDueDateSetFlag'
                     );
 
     foreach($target as $key => $worker)
