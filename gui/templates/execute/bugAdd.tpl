@@ -25,7 +25,7 @@ TestLink Open Source Project - http://testlink.sourceforge.net/
 
 {include file="inc_update.tpl" user_feedback=$gui->msg}
 <div class="workBack">
-  <form action="lib/execute/bugAdd.php" method="post">
+  <form action="lib/execute/bugAdd.php" enctype="multipart/form-data" method="post">
     <input type="hidden" name="tproject_id" id="tproject_id" value="{$gui->tproject_id}">
     <input type="hidden" name="tplan_id" id="tplan_id" value="{$gui->tplan_id}">
     <input type="hidden" name="tcversion_id" id="tcversion_id" value="{$gui->tcversion_id}">
@@ -157,6 +157,11 @@ selected = $gui->prioriry_id
       <br><br>
       <input type="checkbox" name="addLinkToTL"  id="addLinkToTL">
       <span class="label">{$labels.add_link_to_tlexec}</span>
+      <p>
+<input type="hidden" name="MAX_FILE_SIZE" value="{$gui->importLimit}" /> {* restrict file size *}
+    <input type="file" name="uploadedFile" size="{#FILENAME_SIZE#}" maxlength="{#FILENAME_MAXLEN#}"/>
+      </p>
+
     {/if}
 
     <div class="groupBtn">

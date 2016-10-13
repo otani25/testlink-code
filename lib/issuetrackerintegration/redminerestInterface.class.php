@@ -405,6 +405,28 @@ class redminerestInterface extends issueTrackerInterface
         }
       }
 
+      // x!x! 20161013 uploadFile
+      if(isset($_FILES['uploadedFile']))
+      {
+        $file_path = $_FILES['uploadedFile']['tmp_name'];
+        if(file_exists($file_path)){
+          $fp = fopen($file_path,'rb');
+          $size = filesize($file_path);
+          $file = fread($fp, $size);
+          fclose($fp);
+          $token = $this->APIClient->upload($file);
+          if( strlen($token) > 0 ){
+            $uploads = $issueXmlObj->addChild("uploads","");
+            $uploads->addAttribute("type","array");
+            $upload = $uploads->addChild("upload","");
+            $upload->addChild("token",$token);
+            $upload->addChild("filename",$_FILES['uploadedFile']['name']);
+            $upload->addChild("description","");
+            $upload->addChild("content_type",$_FILES['uploadedFile']['type']);
+          }
+        } 
+      }
+
 
       // 20150815 
       // In order to manage custom fields in simple way, 
