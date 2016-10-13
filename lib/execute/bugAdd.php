@@ -185,6 +185,7 @@ function initEnv(&$dbHandler)
   $gui->parent_issue_id = $args->parent_issue_id;
   $gui->due_date = $args->due_date;
 
+  $gui->importLimit = config_get('import_file_max_size_bytes');
   // -----------------------------------------------------------------------
   // Special processing
   list($itObj,$itCfg) = getIssueTracker($dbHandler,$args,$gui);
