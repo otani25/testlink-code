@@ -287,10 +287,11 @@ class redmine
       // For TL I'have added charset=UTF-8, following code I've found on other REST API example
       if( $cmd === '/uploads.xml' ){
         $header[] = "Content-Type: application/octet-stream; charset=UTF-8"; 
+        $header[] = "Content-length: " . strlen($body);
       }else{
         $header[] = "Content-Type: text/xml; charset=UTF-8"; 
+        $header[] = "Content-length: " . mb_strlen($body);
       }
-      $header[] = "Content-length: " . mb_strlen($body);
 
     }
     curl_setopt($this->curl, CURLOPT_HEADER, 0); 
