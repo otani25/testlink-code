@@ -408,23 +408,27 @@ class redminerestInterface extends issueTrackerInterface
       // x!x! 20161013 uploadFile
       if(isset($_FILES['uploadedFile']))
       {
-        $file_path = $_FILES['uploadedFile']['tmp_name'];
-        if(file_exists($file_path)){
-          $fp = fopen($file_path,'rb');
-          $size = filesize($file_path);
-          $file = fread($fp, $size);
-          fclose($fp);
-          $token = $this->APIClient->upload($file);
-          if( strlen($token) > 0 ){
-            $uploads = $issueXmlObj->addChild("uploads","");
-            $uploads->addAttribute("type","array");
-            $upload = $uploads->addChild("upload","");
-            $upload->addChild("token",$token);
-            $upload->addChild("filename",$_FILES['uploadedFile']['name']);
-            $upload->addChild("description","");
-            $upload->addChild("content_type",$_FILES['uploadedFile']['type']);
-          }
-        } 
+        $fileNum = count($_FILES['uploadedFile']['tmp_name']);
+        $uploads = $issueXmlObj->addChild("uploads","");
+        for( $i = 0; $i < $fileNum; $i++)
+        {
+          $file_path = $_FILES['uploadedFile']['tmp_name'][$i];
+          if(file_exists($file_path)){
+            $fp = fopen($file_path,'rb');
+            $size = filesize($file_path);
+            $file = fread($fp, $size);
+            fclose($fp);
+            $token = $this->APIClient->upload($file);
+            if( strlen($token) > 0 ){
+              $uploads->addAttribute("type","array");
+              $upload = $uploads->addChild("upload","");
+              $upload->addChild("token",$token);
+              $upload->addChild("filename",$_FILES['uploadedFile']['name'][$i]);
+              $upload->addChild("description","");
+              $upload->addChild("content_type",$_FILES['uploadedFile']['type'][$i]);
+            }
+          } 
+        }
       }
 
 

@@ -159,7 +159,7 @@ selected = $gui->prioriry_id
       <span class="label">{$labels.add_link_to_tlexec}</span>
       <p>
 <input type="hidden" name="MAX_FILE_SIZE" value="{$gui->importLimit}" /> {* restrict file size *}
-    <input type="file" name="uploadedFile" size="{#FILENAME_SIZE#}" maxlength="{#FILENAME_MAXLEN#}"/>
+    <input type="file" name="uploadedFile[]" size="{#FILENAME_SIZE#}" maxlength="{#FILENAME_MAXLEN#}" multiple/>  #Ctrlキーで複数選択可能
       </p>
 
     {/if}
