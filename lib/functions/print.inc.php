@@ -802,7 +802,7 @@ function renderTestSpecTreeForPrinting(&$db,&$node,&$options,$env,$context,$tocP
     break;
 
     case 'testcase':
-      $code .= renderTestCaseForPrinting($db,$node,$options,$env,$context,$indentLevel); 
+      $code .= renderTestCaseForPrinting($db,$node,$options,$env,$context,$indentLevel,$node['tree']); 
     break;
   }
   
@@ -819,7 +819,8 @@ function renderTestSpecTreeForPrinting(&$db,&$node,&$options,$env,$context,$tocP
       {
         continue;
       }
-
+      //x!x!
+      $current['tree'] = isset($node['tree'])?$node['tree'].$current['name'].">":$node['name']."->";
       if (isset($current['node_type_id']) && $id_descr[$current['node_type_id']] == 'testsuite')
       {
         // Each time I found a contained Test Suite need to add a .x.x. to TOC
@@ -884,7 +885,7 @@ function gendocGetUserName(&$db, $userId)
  *
  * @internal revisions
  */
-function renderTestCaseForPrinting(&$db,&$node,&$options,$env,$context,$indentLevel)
+function renderTestCaseForPrinting(&$db,&$node,&$options,$env,$context,$indentLevel,$tree="")
 {
   
   static $req_mgr;
@@ -1344,6 +1345,11 @@ function renderTestCaseForPrinting(&$db,&$node,&$options,$env,$context,$indentLe
         // disable the field if it's empty
         if ($tcInfo[$key] != '')
         {
+        //x!x!
+        if( $key == 'summary' && strlen($tree) > 0){
+          $code .= '<tr><td colspan="' .  $cfg['tableColspan'] . '"><span class="label">' . '階層' .
+                   ':</span><br />' .  $tree . "</td></tr>";
+        }
           $code .= '<tr><td colspan="' .  $cfg['tableColspan'] . '"><span class="label">' . $labels[$key] .
                    ':</span><br />' .  $tcInfo[$key] . "</td></tr>";
         }
