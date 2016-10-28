@@ -820,7 +820,12 @@ function renderTestSpecTreeForPrinting(&$db,&$node,&$options,$env,$context,$tocP
         continue;
       }
       //x!x!
-      $current['tree'] = isset($node['tree'])?$node['tree'].$current['name'].">":$node['name']."->";
+      if( isset($current['childNodes']) ){
+        $current['tree'] = isset($node['tree'])?$node['tree'].$current['name'].">":$node['name']."->";
+      }else{
+        $current['tree'] = $node['tree'];
+      }
+
       if (isset($current['node_type_id']) && $id_descr[$current['node_type_id']] == 'testsuite')
       {
         // Each time I found a contained Test Suite need to add a .x.x. to TOC
