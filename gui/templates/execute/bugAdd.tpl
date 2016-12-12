@@ -155,7 +155,7 @@ selected = $gui->prioriry_id
 
     {if $gui->user_action == 'create' || $gui->user_action == 'doCreate' || $gui->user_action == 'link'}
       <br><br>
-      <input type="checkbox" name="addLinkToTL"  id="addLinkToTL">
+      <input type="checkbox" name="addLinkToTL"  id="addLinkToTL" checked="checked">
       <span class="label">{$labels.add_link_to_tlexec}</span>
       <p>
 <input type="hidden" name="MAX_FILE_SIZE" value="{$gui->importLimit}" /> {* restrict file size *}
