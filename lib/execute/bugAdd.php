@@ -27,7 +27,8 @@ if( ($args->user_action == 'create' || $args->user_action == 'doCreate') &&
   {
     case 'create':
      $dummy = generateIssueText($db,$args,$its); 
-     $gui->bug_summary = $dummy->summary;
+     // x!x! 2016/12/12 customSummary add
+     $gui->bug_summary = $dummy->customSummary;
     break;
 
     case 'doCreate':

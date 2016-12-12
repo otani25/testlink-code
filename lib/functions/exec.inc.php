@@ -685,6 +685,7 @@ function generateIssueText($dbHandler,$argsObj,$itsObj)
   $dummy = $tcaseMgr->tree_manager->get_node_hierarchy_info($argsObj->tcversion_id);
   $ret->auditSign = $tcaseMgr->getAuditSignature((object)array('id' => $dummy['parent_id'])); 
 
+  $ret->customAuditSign = $tcaseMgr->getAuditSignature((object)array('id' => $dummy['parent_id']),'tree_trim'); 
 
   $dummy = $exec['status'];
   if( isset($resultsCfg['code_status'][$exec['status']]) )
@@ -760,6 +761,8 @@ function generateIssueText($dbHandler,$argsObj,$itsObj)
 
   $ret->timestamp = sprintf(lang_get('execution_ts_iso'),$exec['execution_ts']);
   $ret->summary = $ret->auditSign . ' - ' . $ret->timestamp;
+// x!x! customSummary add
+  $ret->customSummary = $ret->customAuditSign . ' - ';
   if(property_exists($argsObj,'bug_summary') && strlen(trim($argsObj->bug_summary)) != 0 )
   {
     $ret->summary = $argsObj->bug_summary;
