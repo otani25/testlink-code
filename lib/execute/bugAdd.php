@@ -128,6 +128,7 @@ function initEnv(&$dbHandler)
                    "priority_id" => array("POST",tlInputParameter::INT_N),
                    "parent_issue_id" => array("POST",tlInputParameter::STRING_N),
                    "due_date" => array("POST",tlInputParameter::STRING_N),
+                   "custom_field_date" => array("POST",tlInputParameter::STRING_N),
 		               "user_action" => array("REQUEST",tlInputParameter::STRING_N,
                                           $user_action['minLengh'],$user_action['maxLengh']),
                    "addLinkToTL" => array("POST",tlInputParameter::CB_BOOL));
@@ -185,6 +186,7 @@ function initEnv(&$dbHandler)
   $gui->priority_id = $args->priority_id;
   $gui->parent_issue_id = $args->parent_issue_id;
   $gui->due_date = $args->due_date;
+  $gui->custom_field_date = $args->custom_field_date;
 
   $gui->importLimit = config_get('import_file_max_size_bytes');
   // -----------------------------------------------------------------------

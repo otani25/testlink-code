@@ -603,7 +603,7 @@ function addIssue($dbHandler,$argsObj,$itsObj)
   $p2check = array('issueType','issuePriority','issuePriority',
                    'artifactComponent','artifactVersion',
                    'category_id','assigned_to_id','fixed_version_id',
-                   'priority_id','parent_issue_id','due_date');
+                   'priority_id','parent_issue_id','due_date','custom_field_date');
   foreach($p2check as $prop)
   {
     if(property_exists($argsObj, $prop) && !is_null($argsObj->$prop))
@@ -796,6 +796,7 @@ function getIssueTrackerMetaData($itsObj)
     $ret['priority'] = null;
     $ret['parent_id'] = null;
     $ret['due_date'] = null;
+    $ret['custom_field_date'] = null;
 
     $target = array('issueTypes' => 'getIssueTypesForHTMLSelect',
                     'priorities' => 'getPrioritiesForHTMLSelect',
@@ -806,7 +807,8 @@ function getIssueTrackerMetaData($itsObj)
                     'fixed_version' => 'getFixedVersionForHTMLSelect',
                     'priority' => 'getPriorityForHTMLSelect',
                     'parent_id' => 'getParentIdSetFlag',
-                    'due_date' => 'getDueDateSetFlag'
+                    'due_date' => 'getDueDateSetFlag',
+                    'custom_field_date' => 'getCustomFieldDateSetFlag'
                     );
 
     foreach($target as $key => $worker)

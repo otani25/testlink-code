@@ -115,7 +115,8 @@ class redminerestInterface extends issueTrackerInterface
     if( property_exists($this->cfg,'custom_fields') )
     {
       $cf = $this->cfg->custom_fields;
-      $this->cfg->custom_fields = (string)$cf->asXML();
+// x!x! customField custom 
+      //$this->cfg->custom_fields = (string)$cf->asXML();
     }   
   }
 
@@ -430,16 +431,37 @@ class redminerestInterface extends issueTrackerInterface
           } 
         }
       }
-
-
+      
       // 20150815 
       // In order to manage custom fields in simple way, 
       // it seems that is better create here plain XML String
       //
+      // x!x! 20161219 customFields Update with form value
       $xml = $issueXmlObj->asXML();
       if( property_exists($this->cfg,'custom_fields') )
       {
-        $cf = (string)$this->cfg->custom_fields;
+        // form value customTypeList
+        // [0] = custom_field_date
+        $updateCheck = array(-1);
+        $updateValue = array(null);
+
+        // dateType 
+        if( property_exists($this->cfg->customAttributes,'custom_field_date') ){
+          $updateCheck[0] = (string)$this->cfg->customAttributes->custom_field_date;
+          $updateValue[0] = $opt->custom_field_date;
+        }
+
+        for($i = 0; $i < $this->cfg->custom_fields[0]->custom_field->count(); $i++ ){
+          for($c=0; $c < count($updateCheck); $c++){
+            $check = $updateCheck[$c];
+            if( $this->cfg->custom_fields[0]->custom_field[$i]->attributes() == $check){
+              // update custom_fields
+              $this->cfg->custom_fields[0]->custom_field[$i]->value = $updateValue[$c];
+            }
+          } 
+        }
+
+        $cf = (string)$this->cfg->custom_fields->asXML();
         $xml = str_replace('</issue>', $cf . '</issue>', $xml);
       }
 
@@ -601,6 +623,16 @@ class redminerestInterface extends issueTrackerInterface
     return $items;
   }
 
+  function getCustomFieldDate()
+  {
+    $items = null;
+    if(!is_null($this->cfg->customAttributes) && !empty($this->cfg->customAttributes->custom_field_date)){
+      $items = "true";
+    }
+
+    return $items;
+  }
+
   function getCategoryForHTMLSelect()
   {
     return array('items'=> $this->getCategory(),
@@ -633,6 +665,11 @@ class redminerestInterface extends issueTrackerInterface
   function getDueDateSetFlag()
   {
     return array('isVisible' => $this->getDueDateFlag());
+  }
+
+  function getCustomFieldDateSetFlag()
+  {
+    return array('isVisible' => $this->getCustomFieldDate());
   }
 
   private function objectAttrToIDName($attrSet)

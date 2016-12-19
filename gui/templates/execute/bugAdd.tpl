@@ -14,7 +14,7 @@ TestLink Open Source Project - http://testlink.sourceforge.net/
              btn_close,btn_add_bug,btn_save,bug_summary,
              issueType,issuePriority,artifactVersion,artifactComponent,
              bug_category,assigned_to,fixed_version,priority,parent_id,
-             add_link_to_tlexec,due_date'} 
+             add_link_to_tlexec,due_date,custom_field_date'} 
 
 
 <body onunload="dialog_onUnload(bug_dialog)" onload="dialog_onLoad(bug_dialog)">
@@ -136,6 +136,17 @@ selected = $gui->prioriry_id
      <label for="due_date">{$labels.due_date}</label>
 
      <select name="due_date">
+       <option value="" selected="selected">--</option>
+       {section name=time start=$smarty.now loop=$smarty.now+7776000 step=86400}
+       <option value="{$smarty.section.time.index|date_format:"%Y-%m-%d"}">{$smarty.section.time.index|date_format:"%m/%d"}</option>
+       {/section}
+     </select>
+     {/if}
+
+     {if $gui->issueTrackerMetaData.custom_field_date.isVisible === 'true' }
+     <label for="custom_field_date">{$labels.custom_field_date}</label>
+
+     <select name="custom_field_date">
        <option value="" selected="selected">--</option>
        {section name=time start=$smarty.now loop=$smarty.now+7776000 step=86400}
        <option value="{$smarty.section.time.index|date_format:"%Y-%m-%d"}">{$smarty.section.time.index|date_format:"%m/%d"}</option>

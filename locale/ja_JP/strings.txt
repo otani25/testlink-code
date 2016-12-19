@@ -2433,6 +2433,6 @@ $TLS_bug_category               = "カテゴリ";
 $TLS_parent_id                  = "親チケットID";
 $TLS_add_link_to_tlexec         = "コメントにテストケースのリンクを追加する";
 $TLS_due_date                   = "期限日";
-
+$TLS_custom_field_date          = "カスタム用日付";
 // ----- END ------------------------------------------------------------------
 ?>
