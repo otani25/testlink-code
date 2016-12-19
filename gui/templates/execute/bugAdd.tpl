@@ -14,7 +14,7 @@ TestLink Open Source Project - http://testlink.sourceforge.net/
              btn_close,btn_add_bug,btn_save,bug_summary,
              issueType,issuePriority,artifactVersion,artifactComponent,
              bug_category,assigned_to,fixed_version,priority,parent_id,
-             add_link_to_tlexec,due_date'} 
+             add_link_to_tlexec,due_date,custom_field_date'} 
 
 
 <body onunload="dialog_onUnload(bug_dialog)" onload="dialog_onLoad(bug_dialog)">
@@ -142,6 +142,17 @@ selected = $gui->prioriry_id
        {/section}
      </select>
      {/if}
+
+     {if $gui->issueTrackerMetaData.custom_field_date.isVisible === 'true' }
+     <label for="custom_field_date">{$labels.custom_field_date}</label>
+
+     <select name="custom_field_date">
+       <option value="" selected="selected">--</option>
+       {section name=time start=$smarty.now loop=$smarty.now+7776000 step=86400}
+       <option value="{$smarty.section.time.index|date_format:"%Y-%m-%d"}">{$smarty.section.time.index|date_format:"%m/%d"}</option>
+       {/section}
+     </select>
+     {/if}
      </p>
 
      {/if}  {* $gui->issueTrackerMetaData *}
@@ -155,11 +166,11 @@ selected = $gui->prioriry_id
 
     {if $gui->user_action == 'create' || $gui->user_action == 'doCreate' || $gui->user_action == 'link'}
       <br><br>
-      <input type="checkbox" name="addLinkToTL"  id="addLinkToTL">
+      <input type="checkbox" name="addLinkToTL"  id="addLinkToTL" checked="checked">
       <span class="label">{$labels.add_link_to_tlexec}</span>
       <p>
 <input type="hidden" name="MAX_FILE_SIZE" value="{$gui->importLimit}" /> {* restrict file size *}
-    <input type="file" name="uploadedFile" size="{#FILENAME_SIZE#}" maxlength="{#FILENAME_MAXLEN#}"/>
+    <input type="file" name="uploadedFile[]" size="{#FILENAME_SIZE#}" maxlength="{#FILENAME_MAXLEN#}" multiple/>  #Ctrlキーで複数選択可能
       </p>
 
     {/if}

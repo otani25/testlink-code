@@ -6319,9 +6319,12 @@ class testcase extends tlObjectWithAttachments
     $path = '/' . implode('/',$pathInfo['name']) . '/';
     $tcase_prefix = $this->getPrefix($context->id, $pathInfo['node_id'][0]);
     $info = $this->get_last_version_info($context->id, array('output' => 'medium')); 
-    $signature = $path . $tcase_prefix[0] . $this->cfg->testcase->glue_character . 
-                 $info['tc_external_id'] . ':' . $info['name'];
-
+    $signature = $path . $tcase_prefix[0] . $this->cfg->testcase->glue_character . $info['tc_external_id'] . ':' . $info['name'];
+   
+    // x!x! custom option add 
+    if( isset($options) && $options == 'tree_trim' ){
+      $signature = str_replace($path,'',$signature);
+    }
     return $signature;        
   }
 
