@@ -13,7 +13,7 @@
  * @link        http://www.testlink.org/
  *
  * @internal revisions
- * @since 1.9.14
+ * @since 1.9.15
  * 
  *
  **/
@@ -61,6 +61,7 @@ function write_execution(&$db,&$exec_signature,&$exec_data,&$issueTracker)
 {
   static $docRepo;
 
+   
   if(is_null($docRepo))
   {
     $docRepo = tlAttachmentRepository::create($db);
@@ -108,7 +109,9 @@ function write_execution(&$db,&$exec_signature,&$exec_data,&$issueTracker)
     $execStatusKey = 'statusSingle';
   }
 
-  $addIssueOp = null;
+  $addIssueOp = array('createIssue' => null,
+                      'issueForStep' => null);
+  
   foreach ( $item2loop as $tcversion_id => $val)
   {
     $tcase_id=$exec_data['tc_version'][$tcversion_id];
@@ -127,17 +130,20 @@ function write_execution(&$db,&$exec_signature,&$exec_data,&$issueTracker)
              "{$exec_signature->tplan_id}, {$tcversion_id},{$db_now},'{$my_notes}'," .
              "{$version_number},{$exec_signature->platform_id}";
 
-      if(trim($exec_data['execution_duration']) == '')
+      $dura = 'NULL ';
+      if(isset($exec_data['execution_duration']))
       {
-        $dura = 'NULL ';  
-      } 
-      else
-      {
-        $dura = floatval($exec_data['execution_duration']);
+        if(trim($exec_data['execution_duration']) == '')
+        {
+          $dura = 'NULL ';  
+        } 
+        else
+        {
+          $dura = floatval($exec_data['execution_duration']);
+        }  
       }  
 
-      $sql .= ',' .$dura . ")";
-
+      $sql .= ',' . $dura . ")";
 
       $db->exec_query($sql);    
       
@@ -201,6 +207,8 @@ function write_execution(&$db,&$exec_signature,&$exec_data,&$issueTracker)
             if( isset($_FILES['uploadedFile']['name'][$step_id]) && 
                 !is_null($_FILES['uploadedFile']['name'][$step_id])) 
             {
+              $repOpt = array('allow_empty_title' => TRUE);
+
               // May be we have enabled MULTIPLE on file upload
               if( is_array($_FILES['uploadedFile']['name'][$step_id])) 
               {
@@ -220,7 +228,7 @@ function write_execution(&$db,&$exec_signature,&$exec_data,&$issueTracker)
                     {
                       $fInfo[$tk] = $_FILES['uploadedFile'][$tk][$step_id][$moe];
                     }  
-                    $uploaded = $docRepo->insertAttachment($execution_tcsteps_id,$target,'',$fInfo);
+                    $uploaded = $docRepo->insertAttachment($execution_tcsteps_id,$target,'',$fInfo,$repOpt);
                   }
                 }  
               } 
@@ -246,8 +254,16 @@ function write_execution(&$db,&$exec_signature,&$exec_data,&$issueTracker)
         }  
       }  
 
-      if(isset($exec_data['createIssue']) && !is_null($issueTracker) && method_exists($issueTracker,'addIssue'))
+      $itCheckOK = !is_null($issueTracker) && 
+                   method_exists($issueTracker,'addIssue');
+      
+      // re-init
+      $addIssueOp = array('createIssue' => null,
+                          'issueForStep' => null);
+  
+      if($itCheckOK)
       {
+
         $execContext = new stdClass();
         $execContext->exec_id = $execution_id;
         $execContext->tcversion_id = $tcversion_id;
@@ -257,41 +273,31 @@ function write_execution(&$db,&$exec_signature,&$exec_data,&$issueTracker)
 
         $execContext->addLinkToTL = $exec_signature->addLinkToTL;
         $execContext->direct_link = $exec_signature->direct_link;
-
-        if(property_exists($exec_signature,'bug_summary'))
+      
+        // Issue on Test Case
+        if( isset($exec_data['createIssue']) )
         {
-          $execContext->bug_summary = $exec_signature->bug_summary;
+          completeCreateIssue($execContext,$exec_signature);
+          $addIssueOp['createIssue'] = 
+            addIssue($db,$execContext,$issueTracker);
         }  
-        if(property_exists($exec_signature,'bug_notes'))
+        
+        // Issues at step level
+        if( isset($exec_data['issueForStep']) )
         {
-          $execContext->bug_notes = $exec_signature->bug_notes;
+          foreach($exec_data['issueForStep'] as $stepID => $val)
+          {
+            completeIssueForStep($execContext,$exec_signature,
+                                 $exec_data,$stepID);
+            $addIssueOp['issueForStep'][$stepID] = 
+              addIssue($db,$execContext,$issueTracker,$stepID);
+          }  
         }  
-       
-        if(property_exists($exec_signature,'issueType'))
-        {
-          $execContext->issueType = $exec_signature->issueType;
-        }  
-
-        if(property_exists($exec_signature,'issuePriority'))
-        {
-          $execContext->issuePriority = $exec_signature->issuePriority;
-        }  
-
-        if(property_exists($exec_signature,'artifactVersion'))
-        {
-          $execContext->artifactVersion = $exec_signature->artifactVersion;
-        }  
-
-        if(property_exists($exec_signature,'artifactComponent'))
-        {
-          $execContext->artifactComponent = $exec_signature->artifactComponent;
-        }          
-
-        $addIssueOp = addIssue($db,$execContext,$issueTracker);
-      }  
+      } // $itCheckOK
     }
   }
 
+  
   return array($execSet,$addIssueOp);
 }
 
@@ -578,25 +584,23 @@ function getBugsForExecutions(&$db,&$bug_interface,$execSet,$raw = null)
 /**
  *
  */
-function addIssue($dbHandler,$argsObj,$itsObj)
+function addIssue($dbHandler,$argsObj,$itsObj,$stepID=0)
 {
+  static $my;
+
+  if(!$my)
+  {
+    $my = new stdClass();
+    $my->resultsCfg = config_get('results');                      
+    $my->tcaseMgr = new testcase($dbHandler);
+  }  
+
   $ret = array();
   $ret['status_ok'] = true;             
   $ret['msg'] = '';
 
-  $resultsCfg = config_get('results');                      
-  $tcaseMgr = new testcase($dbHandler);
-  $dummy = $tcaseMgr->tree_manager->get_node_hierarchy_info($argsObj->tcversion_id);
-  $auditSign = $tcaseMgr->getAuditSignature((object)array('id' => $dummy['parent_id'])); 
-  $exec = current($tcaseMgr->getExecution($argsObj->exec_id,$argsObj->tcversion_id));
-
 
   $issueText = generateIssueText($dbHandler,$argsObj,$itsObj);  
-  if(property_exists($argsObj,'bug_summary') && strlen(trim($argsObj->bug_summary)) != 0 )
-  {
-    $issueText->summary = $argsObj->bug_summary;
-  }
-
 
   $opt = new stdClass();
   $opt->reporter = $argsObj->user->login;
@@ -823,5 +827,61 @@ function getIssueTrackerMetaData($itsObj)
   }  
     
   return $_SESSION['issueTrackerCfg'][$itsObj->name];
+}
+
+
+/**
+ *
+ *
+ */
+function completeCreateIssue(&$execContext,$exsig)
+{
+  $p2i = array('bug_summary','bug_notes','issueType',
+               'issuePriority','artifactVersion',
+               'artifactComponent');
+  foreach($p2i as $key)
+  {
+    if(property_exists($exsig,$key))
+    {
+      $execContext->$key = $exsig->$key;
+    }  
+  }  
+}
+/**
+ *
+ *
+ */
+function completeIssueForStep(&$execContext,$exsig,$exData,$stepID)
+{
+  $p2i = array('issueSummaryForStep','issueBodyForStep',
+               'issueTypeForStep','issuePriorityForStep',
+               'artifactVersionForStep',
+               'artifactComponentForStep');
+  foreach($p2i as $key)
+  {
+    if( isset($exData,$key) && isset($exData[$key],$stepID) )
+    {
+      if( !property_exists($execContext,$key) )
+      {
+        $execContext->$key = array();  
+      }
+      $ref = &$execContext->$key;
+      $ref[$stepID] = $exData[$key][$stepID];
+    }  
+  }
+  $p2i = array('issueSummaryForStep' => 'bug_summary',
+               'issueBodyForStep' => 'bug_notes',
+               'issueTypeForStep' => 'issueType',
+               'issuePriorityForStep' => 'issuePriority',
+               'artifactVersionForStep' => 'artifactVersion',
+               'artifactComponentForStep' => 'artifactComponent');
+  foreach($p2i as $from => $to)
+  {
+    if(property_exists($execContext,$from) )
+    {
+      $ref = &$execContext->$from;
+      $execContext->$to = $ref[$stepID];
+    }  
+  }
 }
 

@@ -5,7 +5,7 @@
  *
  * @filesource	bugAdd.php
  * @internal revisions
- * @since 1.9.14
+ * @since 1.9.15
  * 
  */
 require_once('../../config.inc.php');
@@ -32,10 +32,10 @@ if( ($args->user_action == 'create' || $args->user_action == 'doCreate') &&
     break;
 
     case 'doCreate':
-     $args->direct_link = getDirectLinkToExec($db,$args->exec_id); 
+     $args->direct_link = getDirectLinkToExec($db,$args->exec_id);
      $dummy = generateIssueText($db,$args,$its); 
-
      $gui->bug_summary = $args->bug_summary;
+  
      $ret = addIssue($db,$args,$its);
      $gui->issueTrackerCfg->tlCanCreateIssue = $ret['status_ok'];
      $gui->msg = $ret['msg'];
@@ -65,10 +65,21 @@ else if($args->user_action == 'link' || $args->user_action == 'add_note')
               logAuditEvent(TLS("audit_executionbug_added",$args->bug_id),"CREATE",$args->exec_id,"executions");
 
               // blank notes will not be added :).
-              if($gui->issueTrackerCfg->tlCanAddIssueNote && (strlen($gui->bug_notes) > 0) )
+              if($gui->issueTrackerCfg->tlCanAddIssueNote) 
               {
+                $hasNotes = (strlen($gui->bug_notes) > 0);
                 // will do call to update issue Notes
-                $its->addNote($args->bug_id,$gui->bug_notes);
+                if($args->addLinkToTL) 
+                {
+                  $args->direct_link = getDirectLinkToExec($db,$args->exec_id);
+                  $dummy = generateIssueText($db,$args,$its); 
+                  $gui->bug_notes = $dummy->description;
+                }  
+
+                if( $args->addLinkToTL || $hasNotes )
+                {
+                  $its->addNote($args->bug_id,$gui->bug_notes);
+                }
               }  
             }
           }
@@ -132,7 +143,6 @@ function initEnv(&$dbHandler)
 		               "user_action" => array("REQUEST",tlInputParameter::STRING_N,
                                           $user_action['minLengh'],$user_action['maxLengh']),
                    "addLinkToTL" => array("POST",tlInputParameter::CB_BOOL));
-		             
 	
 	$args = new stdClass();
 	I_PARAMS($iParams,$args);
@@ -298,7 +308,6 @@ function getDirectLinkToExec(&$dbHandler,$execID)
   
   return $dlk;
 }
-
 
 /**
  * Checks the user rights for viewing the page

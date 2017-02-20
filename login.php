@@ -8,11 +8,11 @@
  * @filesource  login.php
  * @package     TestLink
  * @author      Martin Havlat
- * @copyright   2006,2015 TestLink community 
+ * @copyright   2006,2016 TestLink community 
  * @link        http://www.testlink.org
  * 
  * @internal revisions
- * @since 1.9.14
+ * @since 1.9.15
  *              
  **/
 
@@ -45,6 +45,7 @@ switch($args->action)
     $options = array('doSessionExistsCheck' => ($args->action=='doLogin'));
     $op = doAuthorize($db,$args->login,$args->pwd,$options);
     $doAuthPostProcess = true;
+    $gui->draw = true;
   break;
 
   case 'ajaxcheck':
@@ -53,6 +54,8 @@ switch($args->action)
   
   case 'loginform':
     $doRenderLoginScreen = true;
+    $gui->draw = true;
+
     // unfortunatelly we use $args->note in order to do some logic.
     if( (trim($args->note) == "") &&
         $gui->authCfg['SSO_enabled'] && $gui->authCfg['SSO_method'] == 'CLIENT_CERTIFICATE')
@@ -64,7 +67,6 @@ switch($args->action)
   break;
 }
 
-
 if( $doAuthPostProcess ) 
 {
   list($doRenderLoginScreen,$gui->note) = authorizePostProcessing($args,$op);
@@ -74,7 +76,6 @@ if( $doRenderLoginScreen )
 {
   renderLoginScreen($gui);
 }
-
 
 
 /**
@@ -93,8 +94,9 @@ function init_args()
                    "reqURI" => array(tlInputParameter::STRING_N,0,4000),
                    "action" => array(tlInputParameter::STRING_N,0, 10),
                    "destination" => array(tlInputParameter::STRING_N, 0, 255),
-                   "loginform_token" => array(tlInputParameter::STRING_N, 0, 255)
-  );
+                   "loginform_token" => array(tlInputParameter::STRING_N, 0, 255),
+                   "viewer" => array(tlInputParameter::STRING_N, 0, 3),
+                  );
   $pParams = R_PARAMS($iParams);
 
   $args = new stdClass();
@@ -106,7 +108,10 @@ function init_args()
   $args->destination = urldecode($pParams['destination']);
   $args->loginform_token = urldecode($pParams['loginform_token']);
 
-  if ($pParams['action'] == 'ajaxcheck' || $pParams['action'] == 'ajaxlogin') 
+  $args->viewer = $pParams['viewer']; 
+
+  $k2c = array('ajaxcheck' => 'do','ajaxlogin' => 'do');
+  if (isset($k2c[$pParams['action']])) 
   {
     $args->action = $pParams['action'];
   } 
@@ -118,6 +123,7 @@ function init_args()
   {
     $args->action = 'loginform';
   }
+
   return $args;
 }
 
@@ -128,6 +134,7 @@ function init_args()
 function init_gui(&$db,$args)
 {
   $gui = new stdClass();
+  $gui->viewer = $args->viewer;
 
   $secCfg = config_get('config_check_warning_frequence');
   $gui->securityNotes = '';
@@ -140,8 +147,16 @@ function init_gui(&$db,$args)
 
   $gui->authCfg = config_get('authentication');
   $gui->user_self_signup = config_get('user_self_signup');
-
+  
   $gui->external_password_mgmt = false;
+  $domain = $gui->authCfg['domain'];
+  $mm = $gui->authCfg['method'];
+  if( isset($domain[$mm]) )
+  {
+    $ac = $domain[$mm];
+    $gui->external_password_mgmt = !$ac['allowPasswordManagement'];
+  }  
+
   $gui->login_disabled = (('LDAP' == $gui->authCfg['method']) && !checkForLDAPExtension()) ? 1 : 0;
 
   switch($args->note)
@@ -168,7 +183,7 @@ function init_gui(&$db,$args)
     break;
         
     default:
-      $gui->note = lang_get('please_login');
+      $gui->note = '';
     break;
   }
   $gui->reqURI = $args->reqURI ? $args->reqURI : $args->preqURI;
@@ -205,8 +220,11 @@ function doBlockingChecks(&$dbHandler,&$guiObj)
       session_unset();
       session_destroy();
     } 
+
+    $guiObj->draw = false;
     $guiObj->note = $op['msg'];
     renderLoginScreen($guiObj);
+    die();
   }
 }
 
@@ -227,7 +245,10 @@ function renderLoginScreen($guiObj)
   
   $smarty = new TLSmarty();
   $smarty->assign('gui', $guiObj);
-  $smarty->display($templateCfg->default_template);
+
+  $tpl = str_replace('.php','.tpl',basename($_SERVER['SCRIPT_NAME']));
+  $tpl = 'login-model-marcobiedermann.tpl';
+  $smarty->display($tpl);
 }
 
 
@@ -260,7 +281,8 @@ function authorizePostProcessing($argsObj,$op)
       else
       {
         // ... or show main page
-        redirect($_SESSION['basehref'] . "index.php?caller=login" . 
+        $_SESSION['viewer'] = $argsObj->viewer;
+        redirect($_SESSION['basehref'] . "index.php?caller=login&viewer={$argsObj->viewer}" . 
                  ($argsObj->preqURI ? "&reqURI=".urlencode($argsObj->preqURI) :""));
       
       }

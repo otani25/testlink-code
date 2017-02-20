@@ -84,6 +84,20 @@ require_once(TL_ABS_PATH . 'cfg' . DIRECTORY_SEPARATOR . 'const.inc.php');
  */
 $tlCfg->instance_id = 'Main TestLink Instance';
 
+
+/**
+ * Copied from MantisBT
+ *
+ * Specifies the path under which a cookie is visible
+ * All scripts in this directory and its sub-directories will be able
+ * to access MantisBT cookies.
+ * It is recommended to set this to the actual MantisBT path.
+ * @link http://php.net/function.setcookie
+ * @global string $tlCfg->cookie_path
+ */
+ $tlCfg->cookie_path = '/';
+
+
 /* [LOCALIZATION] */
 
 /** @var string Default localization for users */
@@ -170,6 +184,9 @@ $tlCfg->notifications->userSignUp->to->users = null; // i.e. array('login01','lo
 /* [LOGGING] */
 
 /** Error reporting - do we want php errors to show up for users */
+/** configure on custom_config.inc.php */
+/** error_reporting(E_ALL & ~E_NOTICE & ~E_DEPRECATED & ~E_STRICT & ~E_WARNING); */
+/** error_reporting(E_ALL & ~E_NOTICE & ~E_WARNING); */
 error_reporting(E_ALL);
 
 /** @var string Default level of logging (NONE, ERROR, INFO, DEBUG, EXTENDED) 
@@ -730,7 +747,9 @@ $tlCfg->document_generator->css_template = 'css/tl_documents.css';
 $tlCfg->document_generator->requirement_css_template = 'css/tl_documents.css';
 
 /** Misc settings */
-// Display test case version when creating test spec document
+// Display test case version when creating:
+// - test spec document
+// - test reports
 $tlCfg->document_generator->tc_version_enabled = FALSE;
 
 
@@ -836,6 +855,14 @@ $tlCfg->exec_cfg->exec_mode->tester='assigned_to_me';
 // latest => get as much as possible values from latest execution on
 //           same context => test plan,platform, build
 $tlCfg->exec_cfg->exec_mode->new_exec='clean';
+
+
+// @since 1.9.15
+// Before 1.9.15 save & move to next worked JUST inside
+// a test suite => save_and_move = 'limited'
+// 1.9.15 will move on whole test project
+// save_and_move = 'unlimited'
+$tlCfg->exec_cfg->exec_mode->save_and_move='unlimited';
 
 /** User filter in Test Execution navigator - default value */
 // logged_user -> combo will be set to logged user
@@ -1421,10 +1448,10 @@ $tlCfg->tree_filter_cfg->testcases->edit_mode->filter_importance = ENABLED;
 $tlCfg->tree_filter_cfg->testcases->edit_mode->filter_execution_type = ENABLED;
 $tlCfg->tree_filter_cfg->testcases->edit_mode->filter_custom_fields = ENABLED;
 $tlCfg->tree_filter_cfg->testcases->edit_mode->filter_workflow_status = ENABLED;
+$tlCfg->tree_filter_cfg->testcases->edit_mode->advanced_filter_mode_choice = ENABLED;
 
-// filter mode choice disabled for this mode because there are no filters benefiting from it
-$tlCfg->tree_filter_cfg->testcases->edit_mode->advanced_filter_mode_choice = DISABLED;
-
+$tlCfg->tree_filter_cfg->testcases->edit_mode
+      ->filter_workflow_status_values = array();
 
 $tlCfg->tree_filter_cfg->testcases->plan_mode->filter_tc_id = ENABLED;
 $tlCfg->tree_filter_cfg->testcases->plan_mode->filter_testcase_name = ENABLED;
@@ -1436,6 +1463,9 @@ $tlCfg->tree_filter_cfg->testcases->plan_mode->filter_assigned_user = ENABLED;
 $tlCfg->tree_filter_cfg->testcases->plan_mode->filter_custom_fields = ENABLED;
 $tlCfg->tree_filter_cfg->testcases->plan_mode->filter_result = ENABLED;
 $tlCfg->tree_filter_cfg->testcases->plan_mode->advanced_filter_mode_choice = ENABLED;
+$tlCfg->tree_filter_cfg->testcases->plan_mode->setting_build_inactive_out = FALSE;
+$tlCfg->tree_filter_cfg->testcases->plan_mode->setting_build_close_out = FALSE;
+
 
 $tlCfg->tree_filter_cfg->testcases->plan_add_mode->filter_tc_id = ENABLED;
 $tlCfg->tree_filter_cfg->testcases->plan_add_mode->filter_testcase_name = ENABLED;
@@ -1496,7 +1526,9 @@ $tlCfg->custom_fields->show_custom_fields_without_value = true;
 $tlCfg->custom_fields->max_length = 255;
 
 // sizes for HTML INPUTS
-// for list, multiselection list => number of items
+// for list, multiselection list 
+//  - MAXIMUM number of items displayed at once
+//  
 // for checkbox,radio is useless
 // Hint: more than 120 produce weird effects on user interface
 //
@@ -1504,11 +1536,11 @@ $tlCfg->custom_fields->sizes = array('string' => 100,
                                      'numeric' => 10,
                                      'float' => 10,
                                      'email' => 100,
-                                     'list' => 5,
+                                     'list' => 1,
                                      'multiselection list' => 5,
-                         'text area' => array('rows' => 6, 'cols' => 80),
-                       'script' => 100,
-                       'server' => 100);
+                                     'text area' => array('rows' => 6, 'cols' => 80),
+                                     'script' => 100,
+                                     'server' => 100);
 
 // Use this variable (on custom_config.inc.php) to define new Custom Field types.
 // IMPORTANT:
@@ -1625,12 +1657,15 @@ $g_tpl = array();
 /* Used only */ 
 /* mantissoapInterface.class.php */
 /* jirasoapInterface.class.php */
+/* jirarestInterface.class.php */
 $tlCfg->proxy->host = null;
 $tlCfg->proxy->port = null;
 $tlCfg->proxy->login = null;
 $tlCfg->proxy->password = null;
 
 
+/** Plugins feature */
+define('TL_PLUGIN_PATH', dirname(__FILE__) . DIRECTORY_SEPARATOR . 'plugins' . DIRECTORY_SEPARATOR);
 
 // ----- End of Config ------------------------------------------------------------------
 // --------------------------------------------------------------------------------------
@@ -1755,4 +1790,16 @@ $tlCfg->gui->title_separator_1 =  $tlCfg->gui_title_separator_1;
 $tlCfg->gui->title_separator_2 =  $tlCfg->gui_title_separator_2;
 $tlCfg->gui->role_separator_open =  $tlCfg->gui_separator_open;
 $tlCfg->gui->role_separator_close = $tlCfg->gui_separator_close;
+
+
+/**
+ * Globals for Events storage
+ */
+$g_event_cache = array();
+
+/**
+ * Globals for Plugins
+ */
+$g_plugin_config_cache = array();
+
 // ----- END OF FILE --------------------------------------------------------------------

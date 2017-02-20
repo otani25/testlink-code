@@ -10,9 +10,9 @@
  * 
  * @package   TestLink
  * @author    franciscom
- * @copyright 2012,2015 TestLink community
+ * @copyright 2012,2016 TestLink community
  * @link      http://www.testlink.org/
- * @since     1.9.14
+ * @since     1.9.15
  *
  * @internal revisions
  *
@@ -161,7 +161,10 @@ function init_args(&$dbHandler)
     // ATTENTION - give a look to $tlCfg->reports_list
     // format domain: see reports.cfg.php FORMAT_*
     $typeSize = 30;
-    $iParams = array("apikey" => array(tlInputParameter::STRING_N,32,64),
+    $userAPIkeyLen = 32;
+    $objectAPIkeyLen = 64;
+
+    $iParams = array("apikey" => array(tlInputParameter::STRING_N,$userAPIkeyLen,$objectAPIkeyLen),
                      "tproject_id" => array(tlInputParameter::INT_N),
                      "tplan_id" => array(tlInputParameter::INT_N),
                      "level" => array(tlInputParameter::STRING_N,0,16),
@@ -184,7 +187,23 @@ function init_args(&$dbHandler)
   $args->envCheckMode = $args->type == 'file' ? 'hippie' : 'paranoic';
   $args->light = 'red';
   $opt = array('setPaths' => true,'clearSession' => true);
-  if(strlen($args->apikey) == 32)
+  
+  // validate apikey to avoid SQL injection
+  $args->apikey = trim($args->apikey);
+  $akl = strlen($args->apikey);
+  
+  switch($akl)
+  {
+    case $userAPIkeyLen:
+    case $objectAPIkeyLen:
+    break;
+
+    default:
+     throw new Exception("Aborting - Bad API Key lenght", 1);
+    break;  
+  }
+
+  if($akl == $userAPIkeyLen)
   {
     $args->debug = 'USER-APIKEY';
     setUpEnvForRemoteAccess($dbHandler,$args->apikey,null,$opt);
@@ -193,6 +212,11 @@ function init_args(&$dbHandler)
   }
   else
   {
+    if(is_null($args->type) || trim($args->type) == '')
+    {
+      throw new Exception("Aborting - Bad type", 1);
+    } 
+
     if($args->type == 'exec')
     {
       $tex = DB_TABLE_PREFIX . 'executions';
@@ -200,7 +224,7 @@ function init_args(&$dbHandler)
       $rs = $dbHandler->get_recordset($sql);
       if( is_null($rs) )
       {
-        die();
+        die(__FILE__ . '-' . __LINE__);
       }  
 
       $rs = $rs[0];
@@ -209,7 +233,7 @@ function init_args(&$dbHandler)
       $rs = $dbHandler->get_recordset($sql);
       if( is_null($rs) )
       {
-        die();
+        die(__FILE__ . '-' . __LINE__);
       }  
       $rs = $rs[0];
       $args->apikey = $rs['api_key'];
@@ -220,7 +244,7 @@ function init_args(&$dbHandler)
     $kerberos = new stdClass();
     $kerberos->args = $args;
     $kerberos->method = null;
-    
+
     if( setUpEnvForAnonymousAccess($dbHandler,$args->apikey,$kerberos,$opt) )
     {
       $args->light = 'green';

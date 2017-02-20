@@ -149,7 +149,7 @@ class tlUser extends tlDBObject
     $authCfg = config_get('authentication');
     $this->usernameFormat = config_get('username_format');
     $this->loginRegExp = config_get('validation_cfg')->user_login_valid_regex;
-    $this->maxLoginLength = 30; 
+    $this->maxLoginLength = 100; 
     $this->loginMethod = $authCfg['method'];
     
     $this->globalRoleID = config_get('default_roleid');
@@ -199,23 +199,19 @@ class tlUser extends tlDBObject
   static public function isPasswordMgtExternal($method2check=null)
   {
     $target = $method2check;
+    $authCfg = config_get('authentication');
+ 
     if( is_null($target) || $target=='')
     {
-      $authCfg = config_get('authentication');
       $target = $authCfg['method'];
-    }  
-    switch($target)
-    {
-      case 'LDAP':
-        return true;
-      break;
-
-      case 'DB':
-      case 'MD5':
-      default:
-        return false;
-      break;
     }
+
+    $ret = true;
+    if( isset($authCfg['domain'][$target]) )
+    {
+      $ret = !$authCfg['domain'][$target]['allowPasswordManagement'];
+    }
+    return $ret;
   }
   
   /**
