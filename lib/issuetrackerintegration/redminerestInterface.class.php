@@ -115,7 +115,8 @@ class redminerestInterface extends issueTrackerInterface
     if( property_exists($this->cfg,'custom_fields') )
     {
       $cf = $this->cfg->custom_fields;
-      $this->cfg->custom_fields = (string)$cf->asXML();
+// x!x! customField custom 
+      //$this->cfg->custom_fields = (string)$cf->asXML();
     }   
   }
 
@@ -316,7 +317,7 @@ class redminerestInterface extends issueTrackerInterface
    * - custom_fields    - See Custom fields
    * - watcher_user_ids - Array of user ids to add as watchers (since 2.3.0)
    */
-  public function addIssue($summary,$description)
+  public function addIssue($summary,$description,$opt=null)
   {
   	// Check mandatory info
   	if( !property_exists($this->cfg,'projectidentifier') )
@@ -393,19 +394,83 @@ class redminerestInterface extends issueTrackerInterface
         }  
       }  
 
+      // x!x! 20161004
+      // custom add attributes
+      if( !is_null($opt) )
+      {
+        $attrName = array('category_id','priority_id','parent_issue_id',
+                          'fixed_version_id','assigned_to_id','due_date');
+        foreach($attrName as $name)
+        {
+          if( property_exists($opt,$name) )
+          {
+//            $issueXmlObj->addChild($name,$opt->$name);
+            $issueXmlObj->$name = $opt->$name;
+          }
+        }
+      }
+
+      // x!x! 20161013 uploadFile
+      if(isset($_FILES['uploadedFile']))
+      {
+        $fileNum = count($_FILES['uploadedFile']['tmp_name']);
+        $uploads = $issueXmlObj->addChild("uploads","");
+        for( $i = 0; $i < $fileNum; $i++)
+        {
+          $file_path = $_FILES['uploadedFile']['tmp_name'][$i];
+          if(file_exists($file_path)){
+            $fp = fopen($file_path,'rb');
+            $size = filesize($file_path);
+            $file = fread($fp, $size);
+            fclose($fp);
+            $token = $this->APIClient->upload($file);
+            if( strlen($token) > 0 ){
+              $uploads->addAttribute("type","array");
+              $upload = $uploads->addChild("upload","");
+              $upload->addChild("token",$token);
+              $upload->addChild("filename",$_FILES['uploadedFile']['name'][$i]);
+              $upload->addChild("description","");
+              $upload->addChild("content_type",$_FILES['uploadedFile']['type'][$i]);
+            }
+          } 
+        }
+      }
+      
       // 20150815 
       // In order to manage custom fields in simple way, 
       // it seems that is better create here plain XML String
       //
+      // x!x! 20161219 customFields Update with form value
       $xml = $issueXmlObj->asXML();
       if( property_exists($this->cfg,'custom_fields') )
       {
-        $cf = (string)$this->cfg->custom_fields;
+        // form value customTypeList
+        // [0] = custom_field_date
+        $updateCheck = array(-1);
+        $updateValue = array(null);
+
+        // dateType 
+        if( property_exists($this->cfg->customAttributes,'custom_field_date') ){
+          $updateCheck[0] = (string)$this->cfg->customAttributes->custom_field_date;
+          $updateValue[0] = $opt->custom_field_date;
+        }
+
+        for($i = 0; $i < $this->cfg->custom_fields[0]->custom_field->count(); $i++ ){
+          for($c=0; $c < count($updateCheck); $c++){
+            $check = $updateCheck[$c];
+            if( $this->cfg->custom_fields[0]->custom_field[$i]->attributes() == $check){
+              // update custom_fields
+              $this->cfg->custom_fields[0]->custom_field[$i]->value = $updateValue[$c];
+            }
+          } 
+        }
+
+        $cf = (string)$this->cfg->custom_fields->asXML();
         $xml = str_replace('</issue>', $cf . '</issue>', $xml);
       }
 
       // $op = $this->APIClient->addIssueFromSimpleXML($issueXmlObj);
-      // file_put_contents('/var/testlink/' . __CLASS__ . '.log', $xml);
+       file_put_contents('/var/testlink/' . __CLASS__ . '14.log', $xml);
       $op = $this->APIClient->addIssueFromXMLString($xml);
 
       if(is_null($op))
@@ -507,6 +572,124 @@ class redminerestInterface extends issueTrackerInterface
   {
     return (property_exists($this->cfg, 'projectidentifier'));
   }
+
+  function getCategory()
+  {
+    $items = null;
+    if(!is_null($this->cfg->customAttributes) && !is_null($this->cfg->customAttributes->category)){
+      $items = $this->objectAttrToIDName($this->cfg->customAttributes->category);
+    }
+    return $items;
+  }
+ 
+  function getAssignId()
+  {
+    $items = null;
+    if(!is_null($this->cfg->customAttributes) && !is_null($this->cfg->customAttributes->assigned_to)){
+      $items = $this->objectAttrToIDName($this->cfg->customAttributes->assigned_to);
+    }
+    return $items;
+  }
+
+  function getFixedVersion()
+  {
+    $items = null;
+    if(!is_null($this->cfg->customAttributes) && !is_null($this->cfg->customAttributes->fixed_version)){
+      $items = $this->objectAttrToIDName($this->cfg->customAttributes->fixed_version);
+    }
+    return $items;
+  }
+
+  function getPriority()
+  {
+    $items = null;
+    if(!is_null($this->cfg->customAttributes) && !is_null($this->cfg->customAttributes->priority)){
+      $items = $this->objectAttrToIDName($this->cfg->customAttributes->priority);
+    }
+    return $items;
+  }
+
+  function getParentIdFlag()
+  {
+    $items = null;
+    if(!is_null($this->cfg->customAttributes) && !is_null($this->cfg->customAttributes->parent_set_flag)){
+      $items = (string)$this->cfg->customAttributes->parent_set_flag;
+    }
+    return $items;
+  }
+
+  function getDueDateFlag()
+  {
+    $items = null;
+    if(!is_null($this->cfg->customAttributes) && !is_null($this->cfg->customAttributes->due_date_set_flag)){
+      $items = (string)$this->cfg->customAttributes->due_date_set_flag;
+    }
+    return $items;
+  }
+
+  function getCustomFieldDate()
+  {
+    $items = null;
+    if(!is_null($this->cfg->customAttributes) && !empty($this->cfg->customAttributes->custom_field_date)){
+      $items = "true";
+    }
+
+    return $items;
+  }
+
+  function getCategoryForHTMLSelect()
+  {
+    return array('items'=> $this->getCategory(),
+                 'isMultiSelect' => false);
+  }
+
+  function getAssignIdForHTMLSelect()
+  {
+    return array('items' => $this->getAssignId(),
+                 'isMultiSelect' => false);
+  }
+
+  function getFixedVersionForHTMLSelect()
+  {
+    return array('items' => $this->getFixedVersion(),
+                 'isMultiSelect' => false);
+  }
+
+  function getPriorityForHTMLSelect()
+  {
+    return array('items' => $this->getPriority(),
+                 'isMultiSelect' => false);
+  }
+
+  function getParentIdSetFlag()
+  {
+    return array('isVisible' => $this->getParentIdFlag());
+  }
+
+  function getDueDateSetFlag()
+  {
+    return array('isVisible' => $this->getDueDateFlag());
+  }
+
+  function getCustomFieldDateSetFlag()
+  {
+    return array('isVisible' => $this->getCustomFieldDate());
+  }
+
+  private function objectAttrToIDName($attrSet)
+  {
+    $ret = null;
+    if(!is_null($attrSet))
+    {
+      $ic = count($attrSet);
+      for($idx=0; $idx < $ic; $idx++)
+      {
+        $ret[(string)$attrSet[$idx]->attributes()->id] = (string)$attrSet[$idx]->attributes()->name; 
+      }  
+    }  
+    return $ret;  
+  }
+
 
 
 }

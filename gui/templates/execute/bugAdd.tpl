@@ -12,8 +12,9 @@ TestLink Open Source Project - http://testlink.sourceforge.net/
 {lang_get var='labels' 
           s='title_bug_add,link_bts_create_bug,bug_id,notes,hint_bug_notes,
              btn_close,btn_add_bug,btn_save,bug_summary,
-             add_link_to_tlexec,
-             issueType,issuePriority,artifactVersion,artifactComponent'} 
+             issueType,issuePriority,artifactVersion,artifactComponent,
+             bug_category,assigned_to,fixed_version,priority,parent_id,
+             add_link_to_tlexec,due_date,custom_field_date'} 
 
 
 <body onunload="dialog_onUnload(bug_dialog)" onload="dialog_onLoad(bug_dialog)">
@@ -24,7 +25,7 @@ TestLink Open Source Project - http://testlink.sourceforge.net/
 
 {include file="inc_update.tpl" user_feedback=$gui->msg}
 <div class="workBack">
-  <form action="lib/execute/bugAdd.php" method="post">
+  <form action="lib/execute/bugAdd.php" enctype="multipart/form-data" method="post">
     <input type="hidden" name="tproject_id" id="tproject_id" value="{$gui->tproject_id}">
     <input type="hidden" name="tplan_id" id="tplan_id" value="{$gui->tplan_id}">
     <input type="hidden" name="tcversion_id" id="tcversion_id" value="{$gui->tcversion_id}">
@@ -96,7 +97,64 @@ TestLink Open Source Project - http://testlink.sourceforge.net/
          }
          </select>
       {/if}
+      {if $gui->issueTrackerMetaData.category.items != ''}
+       <label for="category_id">{$labels.bug_category}</label>
+       {html_options name="category_id" options=$gui->issueTrackerMetaData.category.items 
+selected = $gui->category
+}
+      {/if}
+      {if $gui->issueTrackerMetaData.assigned_to.items != ''}
+       <label for="assigned_to_id">{$labels.assigned_to}</label>
+       {html_options name="assigned_to_id" options=$gui->issueTrackerMetaData.assigned_to.items
+selected = $gui->assigne_to_id
+}
+      {/if}
+      {if $gui->issueTrackerMetaData.fixed_version.items != ''}
+       <label for="fixed_version_id">{$labels.fixed_version}</label>
+       {html_options name="fixed_version_id" options=$gui->issueTrackerMetaData.fixed_version.items
+selected = $gui->fixed_version_id
+}
+      {/if}
+
+      {if $gui->issueTrackerMetaData.priority.items != ''}
+       <label for="priority_id">{$labels.priority}</label>
+       {html_options name="priority_id" options=$gui->issueTrackerMetaData.priority.items
+selected = $gui->prioriry_id
+}
+      {/if}
      </p>
+
+     <p>
+     {if $gui->issueTrackerMetaData.parent_id.isVisible === 'true'}
+             <label for="parent_id">{$gui->issueTrackerCfg->VerboseType|escape} {$labels.parent_id}
+        <input type="number"  name="parent_issue_id" 
+               size="150" maxlength="{$gui->issueTrackerCfg->bugIDMaxLength}"
+                />
+     {/if}
+
+     {if $gui->issueTrackerMetaData.due_date.isVisible === 'true'}
+     <label for="due_date">{$labels.due_date}</label>
+
+     <select name="due_date">
+       <option value="" selected="selected">--</option>
+       {section name=time start=$smarty.now loop=$smarty.now+7776000 step=86400}
+       <option value="{$smarty.section.time.index|date_format:"%Y-%m-%d"}">{$smarty.section.time.index|date_format:"%m/%d"}</option>
+       {/section}
+     </select>
+     {/if}
+
+     {if $gui->issueTrackerMetaData.custom_field_date.isVisible === 'true' }
+     <label for="custom_field_date">{$labels.custom_field_date}</label>
+
+     <select name="custom_field_date">
+       <option value="" selected="selected">--</option>
+       {section name=time start=$smarty.now loop=$smarty.now+7776000 step=86400}
+       <option value="{$smarty.section.time.index|date_format:"%Y-%m-%d"}">{$smarty.section.time.index|date_format:"%m/%d"}</option>
+       {/section}
+     </select>
+     {/if}
+     </p>
+
      {/if}  {* $gui->issueTrackerMetaData *}
     {/if}
 
@@ -108,8 +166,13 @@ TestLink Open Source Project - http://testlink.sourceforge.net/
 
     {if $gui->user_action == 'create' || $gui->user_action == 'doCreate' || $gui->user_action == 'link'}
       <br><br>
-      <input type="checkbox" name="addLinkToTL"  id="addLinkToTL">
+      <input type="checkbox" name="addLinkToTL"  id="addLinkToTL" checked="checked">
       <span class="label">{$labels.add_link_to_tlexec}</span>
+      <p>
+<input type="hidden" name="MAX_FILE_SIZE" value="{$gui->importLimit}" /> {* restrict file size *}
+    <input type="file" name="uploadedFile[]" size="{#FILENAME_SIZE#}" maxlength="{#FILENAME_MAXLEN#}" multiple/>  #Ctrlキーで複数選択可能
+      </p>
+
     {/if}
 
     <div class="groupBtn">

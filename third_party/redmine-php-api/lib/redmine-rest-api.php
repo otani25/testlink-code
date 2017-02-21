@@ -189,6 +189,12 @@ class redmine
     return $op;
   }
 
+  // file upload
+  public function upload($data)
+  {
+    $op = $this->_request_file('POST',"/uploads.xml",$data);
+    return $op;
+  }
 
   /**
    *
@@ -260,6 +266,28 @@ class redmine
     return $ret;
   }
 
+   /** 
+  *
+  * custom add method
+  **/
+  protected function _request_file($method, $url, $body = NULL, $ignore_status = 0) 
+  {
+    $r = $this->_request($method, $url, $body, $ignore_status);
+    $response = $r['response'];
+    $content = trim($r['content']);
+    $ret = ($content != '' ? $content : null);
+    if(!is_null($ret) && !empty($response['content_type']))
+    {
+     if(  preg_match('/application\/xml/', $response['content_type']) ||
+      preg_match('/text\/xml/', $response['content_type']))
+     {
+       $ret = simplexml_load_string($ret);
+       return $ret->token;
+     }
+    }
+    return "";
+  }
+
   
  /** 
   *
@@ -313,8 +341,13 @@ class redmine
     {
       // Got this info from http://tspycher.com/2011/03/using-the-redmine-api-with-php/
       // For TL I'have added charset=UTF-8, following code I've found on other REST API example
-      $header[] = "Content-Type: text/xml; charset=UTF-8"; 
-      $header[] = "Content-length: " . mb_strlen($body);
+      if( $cmd === '/uploads.xml' ){
+        $header[] = "Content-Type: application/octet-stream; charset=UTF-8"; 
+        $header[] = "Content-length: " . strlen($body);
+      }else{
+        $header[] = "Content-Type: text/xml; charset=UTF-8"; 
+        $header[] = "Content-length: " . mb_strlen($body);
+      }
 
     }
     curl_setopt($this->curl, CURLOPT_HEADER, 0); 

@@ -605,7 +605,9 @@ function addIssue($dbHandler,$argsObj,$itsObj,$stepID=0)
   $opt = new stdClass();
   $opt->reporter = $argsObj->user->login;
   $p2check = array('issueType','issuePriority','issuePriority',
-                   'artifactComponent','artifactVersion');
+                   'artifactComponent','artifactVersion',
+                   'category_id','assigned_to_id','fixed_version_id',
+                   'priority_id','parent_issue_id','due_date','custom_field_date');
   foreach($p2check as $prop)
   {
     if(property_exists($argsObj, $prop) && !is_null($argsObj->$prop))
@@ -687,6 +689,7 @@ function generateIssueText($dbHandler,$argsObj,$itsObj)
   $dummy = $tcaseMgr->tree_manager->get_node_hierarchy_info($argsObj->tcversion_id);
   $ret->auditSign = $tcaseMgr->getAuditSignature((object)array('id' => $dummy['parent_id'])); 
 
+  $ret->customAuditSign = $tcaseMgr->getAuditSignature((object)array('id' => $dummy['parent_id']),'tree_trim'); 
 
   $dummy = $exec['status'];
   if( isset($resultsCfg['code_status'][$exec['status']]) )
@@ -762,6 +765,8 @@ function generateIssueText($dbHandler,$argsObj,$itsObj)
 
   $ret->timestamp = sprintf(lang_get('execution_ts_iso'),$exec['execution_ts']);
   $ret->summary = $ret->auditSign . ' - ' . $ret->timestamp;
+// x!x! customSummary add
+  $ret->customSummary = $ret->customAuditSign . ' - ';
   if(property_exists($argsObj,'bug_summary') && strlen(trim($argsObj->bug_summary)) != 0 )
   {
     $ret->summary = $argsObj->bug_summary;
@@ -789,11 +794,26 @@ function getIssueTrackerMetaData($itsObj)
     $ret['components'] = null;
     $ret['priorities'] = null;
     $ret['versions'] = null;
+    $ret['category'] = null;
+    $ret['assigned_to'] = null;
+    $ret['fixed_version'] = null;
+    $ret['priority'] = null;
+    $ret['parent_id'] = null;
+    $ret['due_date'] = null;
+    $ret['custom_field_date'] = null;
 
     $target = array('issueTypes' => 'getIssueTypesForHTMLSelect',
                     'priorities' => 'getPrioritiesForHTMLSelect',
                     'versions' => 'getVersionsForHTMLSelect',
-                    'components' => 'getComponentsForHTMLSelect');
+                    'components' => 'getComponentsForHTMLSelect',
+                    'category'  => 'getCategoryForHTMLSelect',
+                    'assigned_to' => 'getAssignIdForHTMLSelect',
+                    'fixed_version' => 'getFixedVersionForHTMLSelect',
+                    'priority' => 'getPriorityForHTMLSelect',
+                    'parent_id' => 'getParentIdSetFlag',
+                    'due_date' => 'getDueDateSetFlag',
+                    'custom_field_date' => 'getCustomFieldDateSetFlag'
+                    );
 
     foreach($target as $key => $worker)
     {

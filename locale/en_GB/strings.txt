@@ -4026,4 +4026,15 @@ $TLS_monitoring = 'Monitoring';
 $TLS_btn_toogle_mon = 'Toogle Monitoring';
 $TLS_btn_start_mon = 'Start Monitoring';
 $TLS_btn_stop_mon = 'Stop Monitoring';
+
+// custom add
+$TLS_bug_category = "category";
+$TLS_assigned_to = "assign";
+$TLS_fixed_version = "version";
+$TLS_priority = "priority";
+$TLS_parent_id = "parent ticketID";
+$TLS_add_link_to_tlexec = "Add Link in Issue Tracker to Test Case Execution Feature";
+$TLS_dl2tl = "Link to TestLink Execution: ";
+$TLS_due_date = "due_date";
+$TLS_custom_field_date = "custom_date";
 // ----- END ------------------------------------------------------------------

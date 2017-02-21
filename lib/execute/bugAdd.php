@@ -27,13 +27,14 @@ if( ($args->user_action == 'create' || $args->user_action == 'doCreate') &&
   {
     case 'create':
      $dummy = generateIssueText($db,$args,$its); 
-     $gui->bug_summary = $dummy->summary;
+     // x!x! 2016/12/12 customSummary add
+     $gui->bug_summary = $dummy->customSummary;
     break;
 
     case 'doCreate':
-     $args->direct_link = getDirectLinkToExec($db,$args->exec_id);
-
+     $args->direct_link = getDirectLinkToExec($db,$args->exec_id); 
      $dummy = generateIssueText($db,$args,$its); 
+
      $gui->bug_summary = $args->bug_summary;
   
      $ret = addIssue($db,$args,$its);
@@ -133,9 +134,17 @@ function initEnv(&$dbHandler)
                    "issuePriority" => array("POST",tlInputParameter::INT_N),
                    "artifactComponent" => array("POST",tlInputParameter::ARRAY_INT),
                    "artifactVersion" => array("POST",tlInputParameter::ARRAY_INT),
+                   "category_id" => array("POST",tlInputParameter::INT_N),
+                   "assigned_to_id" => array("POST",tlInputParameter::INT_N),
+                   "fixed_version_id" => array("POST",tlInputParameter::INT_N),
+                   "priority_id" => array("POST",tlInputParameter::INT_N),
+                   "parent_issue_id" => array("POST",tlInputParameter::STRING_N),
+                   "due_date" => array("POST",tlInputParameter::STRING_N),
+                   "custom_field_date" => array("POST",tlInputParameter::STRING_N),
 		               "user_action" => array("REQUEST",tlInputParameter::STRING_N,
                                           $user_action['minLengh'],$user_action['maxLengh']),
                    "addLinkToTL" => array("POST",tlInputParameter::CB_BOOL));
+		             
 	
 	$args = new stdClass();
 	I_PARAMS($iParams,$args);
@@ -182,8 +191,16 @@ function initEnv(&$dbHandler)
   $gui->issuePriority = $args->issuePriority;
   $gui->artifactVersion = $args->artifactVersion;
   $gui->artifactComponent = $args->artifactComponent;
-  
 
+  $gui->category_id = $args->category_id;
+  $gui->assigned_to_id = $args->assigned_to_id;
+  $gui->fixed_version_id = $args->fixed_version_id;
+  $gui->priority_id = $args->priority_id;
+  $gui->parent_issue_id = $args->parent_issue_id;
+  $gui->due_date = $args->due_date;
+  $gui->custom_field_date = $args->custom_field_date;
+
+  $gui->importLimit = config_get('import_file_max_size_bytes');
   // -----------------------------------------------------------------------
   // Special processing
   list($itObj,$itCfg) = getIssueTracker($dbHandler,$args,$gui);

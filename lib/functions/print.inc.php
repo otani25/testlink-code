@@ -806,7 +806,7 @@ function renderTestSpecTreeForPrinting(&$db,&$node,&$options,$env,$context,$tocP
     break;
 
     case 'testcase':
-      $code .= renderTestCaseForPrinting($db,$node,$options,$env,$context,$indentLevel); 
+      $code .= renderTestCaseForPrinting($db,$node,$options,$env,$context,$indentLevel,$node['tree']); 
     break;
   }
   
@@ -822,6 +822,12 @@ function renderTestSpecTreeForPrinting(&$db,&$node,&$options,$env,$context,$tocP
       if(is_null($current) || $current == REMOVEME)
       {
         continue;
+      }
+      //x!x!
+      if( isset($current['childNodes']) ){
+        $current['tree'] = isset($node['tree'])?$node['tree'].$current['name'].">":$node['name']."->";
+      }else{
+        $current['tree'] = $node['tree'];
       }
 
       if (isset($current['node_type_id']) && $id_descr[$current['node_type_id']] == 'testsuite')
@@ -888,7 +894,7 @@ function gendocGetUserName(&$db, $userId)
  *
  * @internal revisions
  */
-function renderTestCaseForPrinting(&$db,&$node,&$options,$env,$context,$indentLevel)
+function renderTestCaseForPrinting(&$db,&$node,&$options,$env,$context,$indentLevel,$tree="")
 {
   
   static $req_mgr;
@@ -1358,6 +1364,11 @@ function renderTestCaseForPrinting(&$db,&$node,&$options,$env,$context,$indentLe
         // disable the field if it's empty
         if ($tcInfo[$key] != '')
         {
+        //x!x!
+        if( $key == 'summary' && strlen($tree) > 0){
+          $code .= '<tr><td colspan="' .  $cfg['tableColspan'] . '"><span class="label">' . '階層' .
+                   ':</span><br />' .  $tree . "</td></tr>";
+        }
           $code .= '<tr><td colspan="' .  $cfg['tableColspan'] . '"><span class="label">' . $labels[$key] .
                    ':</span><br />' . ($designType == 'none' ? nl2br($tcInfo[$key]) : $tcInfo[$key] ) . "</td></tr>";
         }
