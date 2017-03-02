@@ -454,13 +454,12 @@ class redminerestInterface extends issueTrackerInterface
           $updateCheck[0] = (string)$this->cfg->customAttributes->custom_field_date;
           $updateValue[0] = $opt->custom_field_date;
         }
-
-        for($i = 0; $i < $this->cfg->custom_fields[0]->custom_field->count(); $i++ ){
+        for($i = 0; $i < count($this->cfg->custom_fields->custom_field); $i++ ){
           for($c=0; $c < count($updateCheck); $c++){
             $check = $updateCheck[$c];
-            if( $this->cfg->custom_fields[0]->custom_field[$i]->attributes() == $check){
+            if( $this->cfg->custom_fields->custom_field[$i]->{'@attributes'}->id == $check){
               // update custom_fields
-              $this->cfg->custom_fields[0]->custom_field[$i]->value = $updateValue[$c];
+              $this->cfg->custom_fields->custom_field[$i]->value = $updateValue[$c];
             }
           } 
         }
@@ -684,7 +683,7 @@ class redminerestInterface extends issueTrackerInterface
       $ic = count($attrSet);
       for($idx=0; $idx < $ic; $idx++)
       {
-        $ret[(string)$attrSet[$idx]->attributes()->id] = (string)$attrSet[$idx]->attributes()->name; 
+        $ret[(string)$attrSet[$idx]->{'@attributes'}->id] = (string)$attrSet[$idx]->{'@attributes'}->name; 
       }  
     }  
     return $ret;  

@@ -6447,6 +6447,10 @@ class testcase extends tlObjectWithAttachments
     $signature = $path . $tcase_prefix[0] . $this->cfg->testcase->glue_character .
                  $info['tc_external_id'] . ':' . $info['name'];
 
+    // x!x! custom option add
+    if( isset($options) && $options == 'tree_trim' ){
+      $signature = str_replace($path,'',$signature);
+    }
     return $signature;
   }
 
