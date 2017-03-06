@@ -463,11 +463,20 @@ class redminerestInterface extends issueTrackerInterface
             }
           } 
         }
+$obj = (array)json_decode(json_encode($this->cfg->custom_fields),true);
+$changeXml = new SimpleXMLElement('<cuntom_fields/>');
+$this->arrayToXml($obj, $changeXml);
 
-        $cf = (string)$this->cfg->custom_fields->asXML();
-        $xml = str_replace('</issue>', $cf . '</issue>', $xml);
+$json_str = '{ "a": "12345", "b":"04914" }';
+$obj2 = (array)json_decode($json_str);
+$obj2 = array_flip($obj2);
+$xml2  = new SimpleXMLElement('<root/>');
+array_walk_recursive($obj2, array ($xml2, 'addChild'));
+//echo "<br>xml2<br>".$xml2->asXML();
+
+        //$cf = (string)$this->cfg->custom_fields->asXML();
+        //$xml = str_replace('</issue>', $cf . '</issue>', $xml);
       }
-
       // $op = $this->APIClient->addIssueFromSimpleXML($issueXmlObj);
        file_put_contents('/var/testlink/' . __CLASS__ . '14.log', $xml);
       $op = $this->APIClient->addIssueFromXMLString($xml);
@@ -493,6 +502,26 @@ class redminerestInterface extends issueTrackerInterface
      return $ret;
   }  
 
+/**
+ * Convert an array to XML
+ * @param array $array
+ * @param SimpleXMLElement $xml
+ */
+function arrayToXml($array, &$xml){
+    foreach ($array as $key => $value) {
+        if(is_array($value)){
+            if(is_int($key)){
+                $key = "e";
+            }
+            $label = $xml->addChild($key);
+            $this->arrayToXml($value, $label);
+        }
+        else {
+echo "<br>arrayToXml key:".$key." value:".$value;
+            $xml->addChild($key, $value);
+        }
+    }
+}
 
   /**
    *
