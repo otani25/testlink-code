@@ -116,7 +116,8 @@ class redminerestInterface extends issueTrackerInterface
     {
       $cf = $this->cfg->custom_fields;
 // x!x! customField custom 
-      //$this->cfg->custom_fields = (string)$cf->asXML();
+// 1.9.15 xmlToJsonConvert can not use asXML
+//      $this->cfg->custom_fields = (string)$cf->asXML();
     }   
   }
 
@@ -444,6 +445,7 @@ class redminerestInterface extends issueTrackerInterface
       $xml = $issueXmlObj->asXML();
       if( property_exists($this->cfg,'custom_fields') )
       {
+/*
         // form value customTypeList
         // [0] = custom_field_date
         $updateCheck = array(-1);
@@ -463,13 +465,13 @@ class redminerestInterface extends issueTrackerInterface
             }
           } 
         }
-
-        $cf = (string)$this->cfg->custom_fields->asXML();
+*/
+        $cf = (string)$this->cfg->custom_fields;
         $xml = str_replace('</issue>', $cf . '</issue>', $xml);
       }
 
       // $op = $this->APIClient->addIssueFromSimpleXML($issueXmlObj);
-       file_put_contents('/var/testlink/' . __CLASS__ . '14.log', $xml);
+       file_put_contents('/var/testlink/' . __CLASS__ . '.log', $xml);
       $op = $this->APIClient->addIssueFromXMLString($xml);
 
       if(is_null($op))
@@ -683,7 +685,12 @@ class redminerestInterface extends issueTrackerInterface
       $ic = count($attrSet);
       for($idx=0; $idx < $ic; $idx++)
       {
-        $ret[(string)$attrSet[$idx]->{'@attributes'}->id] = (string)$attrSet[$idx]->{'@attributes'}->name; 
+        if( $ic > 1 ){
+          $ret[(string)$attrSet[$idx]->{'@attributes'}->id] = (string)$attrSet[$idx]->{'@attributes'}->name; 
+        }
+        else {
+          $ret[(string)$attrSet->{'@attributes'}->id] = (string)$attrSet->{'@attributes'}->name; 
+        }
       }  
     }  
     return $ret;  

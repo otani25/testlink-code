@@ -114,7 +114,7 @@ function init_args($whiteLists)
 	$iParams = array("id" => array(tlInputParameter::INT_N),
 					 "doAction" => array(tlInputParameter::STRING_N,0,20),
 					 "name" => array(tlInputParameter::STRING_N,0,100),
-					 "cfg" => array(tlInputParameter::STRING_N,0,2000),
+					 "cfg" => array(tlInputParameter::STRING_N,0,5000),
 					 "type" => array(tlInputParameter::INT_N));
 	
 	//new dBug($_REQUEST);
